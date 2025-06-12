@@ -24,7 +24,6 @@
     "helpers",
     "scripts",
     "package.json",
-    "modules.d.ts",
     "README.md"
   ]
 }

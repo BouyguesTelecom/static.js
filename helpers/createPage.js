@@ -14,7 +14,7 @@ export const createPage = ({
   pageName,
   JSfileName,
 }) => {
-  const template = `<link rel='stylesheet' href='https://assets.bouyguestelecom.fr/TRILOGY/trilogy-styles@4/default/trilogy.css'/>
+  const template = `<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/@trilogy-ds/styles'/>
 <div id=app-{{rootId}}>{{html}}
 ${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}
 ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}

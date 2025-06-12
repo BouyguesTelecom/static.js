@@ -1,10 +1,10 @@
 {
-  "name": "static.js",
+  "name": "@bouygues-telecom/staticjs",
   "version": "1.0.0",
   "type": "module",
   "bin": {
     "create-staticjs-app": "./scripts/create-static-app.js",
-    "static.js": "./scripts/cli.js"
+    "bt-staticjs": "./scripts/cli.js"
   },
   "dependencies": {
     "cli-spinner": "^0.2.10",

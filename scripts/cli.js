@@ -12,7 +12,11 @@ program
   .description("Build with static.js configuration")
   .action(() => {
     try {
-      const cachePagesPath = path.resolve(__dirname, "./cachePages.js");
+      const cachePagesPath = path.resolve(
+        __dirname,
+        "../helpers/cachePages.js"
+      );
+
       const htmlConfig = path.resolve(__dirname, "./build-html.js");
       const dest = process.cwd();
       console.log("Executing static.js config...");

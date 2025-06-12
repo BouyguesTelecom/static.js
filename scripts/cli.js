@@ -9,13 +9,13 @@ import path from "path";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 program
   .command("build")
-  .description("Build with staticjs configuration")
+  .description("Build with static.js configuration")
   .action(() => {
     try {
       const cachePagesPath = path.resolve(__dirname, "./cachePages.js");
       const htmlConfig = path.resolve(__dirname, "./build-html.js");
       const dest = process.cwd();
-      console.log("Executing staticjs config...");
+      console.log("Executing static.js config...");
 
       execSync("rimraf dist", {
         cwd: dest,

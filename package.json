@@ -1,11 +1,11 @@
 {
-  "name": "staticjs",
+  "name": "static.js",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "bin": {
     "create-staticjs-app": "./scripts/create-static-app.js",
-    "staticjs": "./scripts/cli.js"
+    "static.js": "./scripts/cli.js"
   },
   "dependencies": {
     "cli-spinner": "^0.2.10",
@@ -19,9 +19,6 @@
   "volta": {
     "node": "24.1.0"
   },
-  "workspaces": [
-    "templates/react"
-  ],
   "files": [
     "config",
     "helpers",

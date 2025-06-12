@@ -1,8 +1,8 @@
+import path from "path";
 import {
   addHydrationCodePlugin,
   noJsPlugin,
-} from "staticjs/config/vite.plugin.js";
-import path from "path";
+} from "static.js/config/vite.plugin.js";
 import { defineConfig } from "vite";
 import entries from "./cache/pagesCache.json";
 export default defineConfig({

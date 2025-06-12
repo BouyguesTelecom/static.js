@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "staticjs build",
+    "build": "static.js build",
     "lint": "eslint .",
     "start": "npm run build && node server.js"
   },
@@ -28,7 +28,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
-    "staticjs": "*"
+    "static.js": "*"
   },
   "volta": {
     "node": "24.1.0"

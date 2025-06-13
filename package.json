@@ -2,9 +2,20 @@
   "name": "@bouygues-telecom/staticjs",
   "version": "1.0.0",
   "type": "module",
+  "files": [
+    "config",
+    "helpers",
+    "scripts",
+    "package.json",
+    "README.md"
+  ],
   "bin": {
     "create-staticjs-app": "./scripts/create-static-app.js",
     "bt-staticjs": "./scripts/cli.js"
+  },
+  "scripts": {
+    "build": "cd templates/react && rimraf dist && rimraf cache && node ../../helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../scripts/build-html.js",
+    "start": "node templates/react/server.js"
   },
   "dependencies": {
     "cli-spinner": "^0.2.10",
@@ -18,11 +29,7 @@
   "volta": {
     "node": "24.1.0"
   },
-  "files": [
-    "config",
-    "helpers",
-    "scripts",
-    "package.json",
-    "README.md"
+  "workspaces": [
+    "templates/react"
   ]
 }

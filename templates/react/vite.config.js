@@ -5,6 +5,7 @@ import {
 import path from "path";
 import { defineConfig } from "vite";
 import entries from "./cache/pagesCache.json";
+
 export default defineConfig({
   resolve: {
     alias: {

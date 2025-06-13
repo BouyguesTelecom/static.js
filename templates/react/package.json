@@ -7,7 +7,8 @@
     "build": "bt-staticjs build",
     "lint": "eslint .",
     "start": "node server.js",
-    "serve": "npx http-server dist -p 3300"
+    "serve": "npx http-server dist -p 3300",
+    "watch:build": "nodemon"
   },
   "dependencies": {
     "express": "^5.1.0",
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@bouygues-telecom/staticjs": "*",
     "@eslint/js": "^9.25.0",
+    "nodemon": "^3.1.10",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.4.1",

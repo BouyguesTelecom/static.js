@@ -6,7 +6,8 @@
   "scripts": {
     "build": "bt-staticjs build",
     "lint": "eslint .",
-    "start": "node server.js"
+    "start": "node server.js",
+    "serve": "npx http-server dist -p 3300"
   },
   "dependencies": {
     "express": "^5.1.0",

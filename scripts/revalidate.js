@@ -1,41 +1,41 @@
-import express from 'express';
-import { exec } from 'child_process';
+import { exec } from "child_process";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import path from "path";
 
-const app = express();
-app.use(express.json());
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const PORT = process.env.PORT || 3000;
+export const revalidate = (req, res) => {
+  try {
+    const paths = req?.body?.paths || [];
+    const pathsArg = paths.length > 0 ? paths.join(" ") : "";
+    const cachePages = path.resolve(__dirname, "../helpers/cachePages.js");
+    const buildHtmlConfig = path.resolve(__dirname, "./build-html.js");
 
-const rebuildApplication = (paths) => {
-    console.log('Rebuilding application...');
-
-    console.log(`Building paths: ${paths}`);
-
-    const pathsArg = paths.length > 0 ? paths.join(' ') : '';
-
-    const buildCommand = `NODE_TLS_REJECT_UNAUTHORIZED=0 node helpers/cachePages.js ${pathsArg && `-- ${pathsArg}`} && tsx build-html.js`;
+    const buildCommand = `NODE_TLS_REJECT_UNAUTHORIZED=0 node ${cachePages} ${
+      pathsArg && `${pathsArg}`
+    } && npx tsx ${buildHtmlConfig}`;
 
     exec(buildCommand, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Exec error: ${error}`);
-            return;
-        }
+      if (error) {
+        console.error(`Exec error: ${error}`);
+        return;
+      }
+      if (!error) {
         console.log(`stdout: ${stdout}`);
         console.error(`stderr: ${stderr}`);
+      }
     });
+
+    return res
+      .status(200)
+      .send(
+        `Revalidation triggered, paths: ${
+          paths.length > 0 ? paths.join(", ") : "all pages"
+        } built!`
+      );
+  } catch (error) {
+    console.error("Revalidation error:", error);
+    res.status(500).send("Error during revalidation.");
+  }
 };
-
-app.post('/revalidate', (req, res) => {
-    try {
-        const paths = req?.body?.paths || [];
-        rebuildApplication(paths);
-        res.status(200).send(`Revalidation triggered, paths: ${paths.length > 0 ? paths.join(', ') : 'all pages'} built!`);
-    } catch (error) {
-        console.error('Revalidation error:', error);
-        res.status(500).send('Error during revalidation.');
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});

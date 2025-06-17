@@ -1,7 +1,7 @@
 import { Layout } from "@/layout";
 import React from "react";
 
-export const App: React.FC<{ Component: any; props: any }> = ({
+export const App: React.FC<{ Component: React.FC; props: {} }> = ({
   Component,
   props,
 }) => {

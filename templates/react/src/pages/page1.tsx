@@ -17,7 +17,7 @@ const Page1: React.FC<{ data: any }> = ({ data }) => {
 
   return (
     <div>
-      <p className="title">Todooo ID: {data?.id}</p>
+      <p className="title">Page ID: {data?.id}</p>
       <button className="button is-primary" onClick={() => console.log(data)}>
         Click me!
       </button>

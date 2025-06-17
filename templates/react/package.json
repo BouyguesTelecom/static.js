@@ -7,7 +7,7 @@
     "lint": "eslint .",
     "build": "bt-staticjs build",
     "watch": "nodemon",
-    "serve": "npx http-server dist -p 3300 & open http://localhost:3300/page1.html",
+    "serve": "npx http-server dist -p 3300 & open http://localhost:3300/page1.html || start http://localhost:3300/page1.html",
     "start": "npm run build && npm run serve && npm run watch"
   },
   "dependencies": {

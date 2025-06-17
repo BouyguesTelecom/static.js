@@ -2,7 +2,7 @@
 
 # 🚀 StaticJS
 
-**A modern boilerplate for creating static projects**
+**A modern React boilerplate for creating static projects**
 
 [![npm version](https://badge.fury.io/js/%40bouygues-telecom%2Fstaticjs.svg)](https://badge.fury.io/js/%40bouygues-telecom%2Fstaticjs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

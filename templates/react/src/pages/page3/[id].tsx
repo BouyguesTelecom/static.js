@@ -13,7 +13,13 @@ export const getStaticPaths = async () => {
   return { paths, fallback: false };
 };
 
-export const getStaticProps = async ({ params }: any) => {
+interface ParamsProps {
+    params: {
+        id: string;
+    };
+}
+
+export const getStaticProps = async ({ params }: ParamsProps) => {
   const res = await fetch(
     `https://jsonplaceholder.typicode.com/todos/${params?.id}`
   );
@@ -21,10 +27,17 @@ export const getStaticProps = async ({ params }: any) => {
   return { props: { data: todo } };
 };
 
-const TodoPage: React.FC<{ data: any }> = ({ data }) => {
+interface DataProps {
+    data: {
+        id: number;
+        title: string;
+    };
+}
+
+const TodoPage: ({data}: DataProps) => React.JSX.Element = ({ data }: DataProps) => {
   return (
     <div>
-      <p className="title">Todo ID: {data?.id}</p>
+      <p className="title">Page ID: {data?.id}</p>
       <p className="text">{data?.title}</p>
       <button className="button is-primary" onClick={() => console.log(data)}>
         Click me!

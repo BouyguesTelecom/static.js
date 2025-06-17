@@ -10,7 +10,14 @@ export const getStaticProps = async () => {
   };
 };
 
-const Page1: React.FC<{ data: any }> = ({ data }) => {
+interface DataProps {
+  data: {
+    id: number;
+    title: string;
+  };
+}
+
+const Page1: ({data}: DataProps) => React.JSX.Element = ({ data }: DataProps) => {
   useEffect(() => {
     console.log("Page1 loaded !");
   }, []);

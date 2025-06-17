@@ -54,7 +54,7 @@ async function main() {
 
       if (getStaticProps && getStaticPaths) {
         const { paths } = await getStaticPaths();
-        paths.forEach(async (param) => {
+        return paths.forEach(async (param) => {
           const slug = param.params[fileName.replace(/[\[\]]/g, "")];
           const { props } = await getStaticProps(param);
           const pageName = page.pageName.replace(/\[.*?\]/, slug);
@@ -72,20 +72,20 @@ async function main() {
         });
       }
 
-      if (getStaticProps && !getStaticPaths) {
+      if (getStaticProps) {
         const { props } = await getStaticProps();
         data = props.data;
-
-        createPage({
-          data,
-          AppComponent,
-          PageComponent,
-          initialDatasId,
-          rootId,
-          pageName: page.pageName,
-          JSfileName: injectJS && fileName,
-        });
       }
+
+      createPage({
+        data,
+        AppComponent,
+        PageComponent,
+        initialDatasId,
+        rootId,
+        pageName: page.pageName,
+        JSfileName: injectJS && fileName,
+      });
 
       console.log(`Successfully wrote: dist/${page.pageName}.html`);
     } catch (error) {

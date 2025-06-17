@@ -75,17 +75,17 @@ async function main() {
       if (getStaticProps && !getStaticPaths) {
         const { props } = await getStaticProps();
         data = props.data;
-      }
 
-      createPage({
-        data,
-        AppComponent,
-        PageComponent,
-        initialDatasId,
-        rootId,
-        pageName: page.pageName,
-        JSfileName: injectJS && fileName,
-      });
+        createPage({
+          data,
+          AppComponent,
+          PageComponent,
+          initialDatasId,
+          rootId,
+          pageName: page.pageName,
+          JSfileName: injectJS && fileName,
+        });
+      }
 
       console.log(`Successfully wrote: dist/${page.pageName}.html`);
     } catch (error) {

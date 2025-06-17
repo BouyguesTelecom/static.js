@@ -15,7 +15,7 @@
   },
   "scripts": {
     "build": "cd templates/react && rimraf dist && rimraf cache && node ../../helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../scripts/build-html.js",
-    "start": "cd templates/react && node server.js"
+    "start": "cd templates/react && npm start"
   },
   "dependencies": {
     "cli-spinner": "^0.2.10",

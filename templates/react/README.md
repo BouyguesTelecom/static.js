@@ -84,19 +84,13 @@ cd your-project
 npm i
 ```
 
-### 3. Build the project
-
-```bash
-npm run build
-```
-
-### 4. Start the server
+### 3. Build & Start the server
 
 ```bash
 npm run start
 ```
 
-🎉 **Your project is now accessible at** `http://localhost:3000`
+🎉 **Your project is now accessible at** `http://localhost:3300`
 
 ## 🔄 Revalidation
 

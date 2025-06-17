@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "bt-staticjs build",
     "lint": "eslint .",
-    "start": "node server.js",
-    "serve": "npx http-server dist -p 3300",
-    "watch:build": "nodemon"
+    "build": "bt-staticjs build",
+    "watch": "nodemon",
+    "serve": "vite --config vite.server.config.js",
+    "start": "npm run build && npm run serve"
   },
   "dependencies": {
     "express": "^5.1.0",
@@ -19,7 +19,6 @@
   "devDependencies": {
     "@bouygues-telecom/staticjs": "*",
     "@eslint/js": "^9.25.0",
-    "nodemon": "^3.1.10",
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.4.1",
@@ -27,6 +26,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "nodemon": "^3.1.10",
     "rimraf": "^6.0.1",
     "tsx": "^4.19.4",
     "typescript": "~5.8.3",

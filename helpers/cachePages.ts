@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { readPages } from "./readPages.js";
+import { readPages } from "./readPages.ts";
 
 const pagesDir = path.resolve(process.cwd(), "src/pages");
 const args = process.argv.slice(2);
@@ -11,8 +11,8 @@ let entries;
 
 if (args.length > 0) {
   entries = args
-    .filter((arg) => arg.endsWith(".tsx"))
-    .reduce((obj, tsxFile) => {
+    .filter((arg: string) => arg.endsWith(".tsx"))
+    .reduce((obj: { [key: string]: string }, tsxFile) => {
       console.log(`Processing arg: ${tsxFile}`);
       const relativePathWithoutExtension = tsxFile.replace(/\.tsx$/, "");
       const fullPath = path.resolve(pagesDir, tsxFile);

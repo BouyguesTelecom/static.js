@@ -2,7 +2,7 @@ import fs from "fs";
 import crypto from "node:crypto";
 import path from "path";
 
-const getDefaultExportFunctionName = (code) => {
+const getDefaultExportFunctionName = (code: string) => {
   const defaultExportRegex = /export\s+default\s+function\s+(\w+)/;
   const match = code.match(defaultExportRegex);
   if (match && match[1]) return match[1];
@@ -12,10 +12,10 @@ const getDefaultExportFunctionName = (code) => {
   return null;
 };
 
-export const addHydrationCodePlugin = (entries) => {
+export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
   return {
     name: "add-hydration-code",
-    transform(code, id) {
+    transform(code: string, id: string) {
       if (!Object.values(entries).includes(id)) return null;
       const componentName = getDefaultExportFunctionName(code);
 
@@ -63,11 +63,11 @@ export const addHydrationCodePlugin = (entries) => {
   };
 };
 
-export const noJsPlugin = (entries) => {
+export const noJsPlugin = (entries: { [key: string]: string }) => {
   return {
     name: "no-js-plugin",
     buildStart() {
-      const excludedFiles = [];
+      const excludedFiles: string[] = [];
 
       Object.entries(entries).forEach(([name, path]) => {
         const content = fs.readFileSync(path, "utf8");
@@ -76,7 +76,9 @@ export const noJsPlugin = (entries) => {
         if (firstLine.includes("no scripts")) {
           delete entries[name];
           excludedFiles.push(name);
-          console.log(`Excluding ${name} from build due to "no scripts" directive.`);
+          console.log(
+            `Excluding ${name} from build due to "no scripts" directive.`
+          );
         }
       });
 

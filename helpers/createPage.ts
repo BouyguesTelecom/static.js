@@ -5,6 +5,16 @@ import ReactDOMServer from "react-dom/server";
 
 const outputDir = path.resolve(process.cwd(), "dist");
 
+interface IcreatePage {
+  data:any,
+  AppComponent: React.FC<{ Component: React.FC; props: {} }>,
+  PageComponent: () => React.JSX.Element,
+  initialDatasId: string,
+  rootId:string,
+  pageName:string,
+  JSfileName:string | false,
+}
+
 export const createPage = ({
   data,
   AppComponent,
@@ -13,7 +23,7 @@ export const createPage = ({
   rootId,
   pageName,
   JSfileName,
-}) => {
+}: IcreatePage) => {
   const template = `
 <div id=app-{{rootId}}>{{html}}
 ${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}

@@ -1,6 +1,6 @@
 import path from "path";
 import { defineConfig } from "vite";
-import { addHydrationCodePlugin, noJsPlugin } from "./config/vite.plugin.js";
+import { addHydrationCodePlugin, noJsPlugin } from "./config/vite.plugin";
 import entries from "./templates/react/cache/pagesCache.json";
 
 export default defineConfig({

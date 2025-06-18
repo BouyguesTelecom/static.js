@@ -3,7 +3,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 import fs from "fs/promises";
 import crypto from "node:crypto";
 import path from "path";
-import { createPage } from "../helpers/createPage.js";
+import { createPage } from "../helpers/createPage.ts";
 
 const rootDir = path.resolve(process.cwd(), "./src");
 

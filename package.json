@@ -14,9 +14,9 @@
     "bt-staticjs": "./scripts/cli.js"
   },
   "scripts": {
-    "build": "cd templates/react && rimraf dist && rimraf cache && node ../../helpers/cachePages.ts && vite build --config ../../vite.config.ts && tsx ../../scripts/build-html.ts",
-    "start": "cd templates/react && npm start",
-    "prepare": "tsc -p ./tsconfig.json"
+    "prebuild": "tsc -p ./tsconfig.json",
+    "build": "cd templates/react && rimraf dist && rimraf cache && node ../../dist/helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../dist/scripts/build-html.js",
+    "start": "cd templates/react && npm start"
   },
   "dependencies": {
     "@types/node": "^20",

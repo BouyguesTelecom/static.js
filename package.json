@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "files": [
-    "dist/config",
-    "dist/helpers",
-    "dist/scripts",
+    "config",
+    "helpers",
+    "scripts",
     "package.json",
     "README.md"
   ],
@@ -14,6 +14,7 @@
     "bt-staticjs": "./scripts/cli.js"
   },
   "scripts": {
+    "prepare": "mv dist/config config && mv dist/helpers helpers && mv dist/scripts scripts",
     "prebuild": "tsc -p ./tsconfig.json",
     "build": "cd templates/react && rimraf dist && rimraf cache && node ../../dist/helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../dist/scripts/build-html.js",
     "start": "cd templates/react && npm start"

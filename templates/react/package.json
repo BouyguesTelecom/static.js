@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint .",
     "build": "bt-staticjs build",
+    "generate:test:multiapps": "generate-test-multiapps generate:test",
     "watch": "nodemon",
     "serve": "vite --config vite.server.config.js",
     "start": "npm run build && npm run serve"

@@ -37,6 +37,7 @@
     "templates/react"
   ],
   "devDependencies": {
+    "@types/cli-spinner": "^0.2.3",
     "@types/express": "^5.0.3"
   }
 }

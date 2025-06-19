@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { readPages } from "./readPages.ts";
+import { readPages } from "./readPages.js";
 
 const pagesDir = path.resolve(process.cwd(), "src/pages");
 const args = process.argv.slice(2);

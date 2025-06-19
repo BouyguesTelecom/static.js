@@ -1,5 +1,4 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
@@ -11,7 +10,8 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "importHelpers": true
+    "importHelpers": true,
+    "outDir": "./dist"
   },
   "include": ["./**/*.ts"],
   "exclude": ["node_modules", "dist", "templates"]

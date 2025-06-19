@@ -14,8 +14,7 @@
     "bt-staticjs": "./scripts/cli.js"
   },
   "scripts": {
-    "prepare": "mv dist/config config && mv dist/helpers helpers && mv dist/scripts scripts",
-    "prebuild": "tsc -p ./tsconfig.json",
+    "prebuild": "tsc -p ./tsconfig.json && mv dist/config config && mv dist/helpers helpers && mv dist/scripts scripts",
     "build": "cd templates/react && rimraf dist && rimraf cache && node ../../dist/helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../dist/scripts/build-html.js",
     "start": "cd templates/react && npm start"
   },

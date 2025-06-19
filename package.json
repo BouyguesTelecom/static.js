@@ -3,18 +3,16 @@
   "version": "1.0.0",
   "type": "module",
   "files": [
-    "config",
-    "helpers",
-    "scripts",
+    "dist",
     "package.json",
     "README.md"
   ],
   "bin": {
-    "create-staticjs-app": "./scripts/create-static-app.js",
-    "bt-staticjs": "./scripts/cli.js"
+    "create-staticjs-app": "./dist/scripts/create-static-app.js",
+    "bt-staticjs": "./dist/scripts/cli.js"
   },
   "scripts": {
-    "prebuild": "tsc -p ./tsconfig.json && mv dist/config config && mv dist/helpers helpers && mv dist/scripts scripts",
+    "prebuild": "tsc -p ./tsconfig.json",
     "build": "cd templates/react && rimraf dist && rimraf cache && node ../../dist/helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../dist/scripts/build-html.js",
     "start": "cd templates/react && npm start"
   },

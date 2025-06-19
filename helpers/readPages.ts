@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 
-export function readPages(dir, baseDir = dir) {
-  let result = {};
+export function readPages(dir: string, baseDir = dir) {
+  let result: { [key: string]: string } = {};
   const files = fs.readdirSync(dir);
 
   for (const file of files) {

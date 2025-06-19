@@ -10,7 +10,7 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-async function createReactPowerStatic(projectName) {
+async function createReactPowerStatic(projectName: string) {
   const dest = path.join(process.cwd(), projectName);
   const spinner = new Spinner("Creating react project... %s");
   spinner.setSpinnerString("|/-\\");

@@ -1,4 +1,4 @@
-import { revalidate } from "@bouygues-telecom/staticjs/scripts/revalidate.js";
+import { revalidate } from "@bouygues-telecom/staticjs/dist/scripts/revalidate.js";
 import express from "express";
 
 const app = express();

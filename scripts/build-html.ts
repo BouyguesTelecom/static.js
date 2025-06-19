@@ -7,7 +7,7 @@ import { createPage } from "../helpers/createPage.js";
 
 const rootDir = path.resolve(process.cwd(), "./src");
 
-async function loadJson(filePath) {
+async function loadJson(filePath: string) {
   const data = await fs.readFile(filePath, "utf-8");
   return JSON.parse(data);
 }
@@ -20,7 +20,7 @@ async function main() {
     path.join(path.resolve(process.cwd()), "./cache/pagesCache.json")
   );
 
-  const processPage = async (page) => {
+  const processPage = async (page: { path: string; pageName: string }) => {
     try {
       let data;
       const absolutePath = page.path;
@@ -54,22 +54,25 @@ async function main() {
 
       if (getStaticProps && getStaticPaths) {
         const { paths } = await getStaticPaths();
-        return paths.forEach(async (param) => {
-          const slug = param.params[fileName.replace(/[\[\]]/g, "")];
-          const { props } = await getStaticProps(param);
-          const pageName = page.pageName.replace(/\[.*?\]/, slug);
-          const JSfileName = injectJS && fileName.replace(/\[(.*?)\]/g, "_$1_");
+        return paths.forEach(
+          async (param: { params: { [x: string]: string } }) => {
+            const slug = param.params[fileName.replace(/[\[\]]/g, "")];
+            const { props } = await getStaticProps(param);
+            const pageName = page.pageName.replace(/\[.*?\]/, slug);
+            const JSfileName =
+              injectJS && fileName.replace(/\[(.*?)\]/g, "_$1_");
 
-          createPage({
-            data: props.data,
-            AppComponent,
-            PageComponent,
-            initialDatasId,
-            rootId,
-            pageName,
-            JSfileName,
-          });
-        });
+            createPage({
+              data: props.data,
+              AppComponent,
+              PageComponent,
+              initialDatasId,
+              rootId,
+              pageName,
+              JSfileName: JSfileName,
+            });
+          }
+        );
       }
 
       if (getStaticProps) {
@@ -94,8 +97,8 @@ async function main() {
   };
 
   const pages = Object.entries(files).map(([pageName, path]) => ({
-    pageName,
-    path,
+    pageName: pageName as string,
+    path: path as string,
   }));
 
   pages.forEach(processPage);

@@ -11,8 +11,8 @@ let entries;
 
 if (args.length > 0) {
   entries = args
-    .filter((arg) => arg.endsWith(".tsx"))
-    .reduce((obj, tsxFile) => {
+    .filter((arg: string) => arg.endsWith(".tsx"))
+    .reduce((obj: { [key: string]: string }, tsxFile) => {
       console.log(`Processing arg: ${tsxFile}`);
       const relativePathWithoutExtension = tsxFile.replace(/\.tsx$/, "");
       const fullPath = path.resolve(pagesDir, tsxFile);

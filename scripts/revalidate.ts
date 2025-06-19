@@ -1,11 +1,12 @@
 import { exec } from "child_process";
+import { Request, Response } from "express";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import path from "path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export const revalidate = (req, res) => {
+export const revalidate = (req: Request, res: Response) => {
   try {
     const paths = req?.body?.paths || [];
     const pathsArg = paths.length > 0 ? paths.join(" ") : "";

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "importHelpers": true,
+    "outDir": "./dist",
+    "emitDeclarationOnly": false,
+  },
+  "include": ["config", "helpers", "scripts"],
+  "exclude": ["node_modules", "dist", "templates"]
+}

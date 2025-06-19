@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import fs from 'fs';
 import path from 'path';
 
@@ -8,7 +10,7 @@ const htmlFiles = ['page1.html', 'page2.html'];
 const outputDir = 'test';
 const outputFile = 'test-multi-app.html';
 
-const readFile = (filePath) => {
+const readFile = (filePath: string) => {
     return new Promise((resolve, reject) => {
         fs.readFile(filePath, 'utf8', (err, data) => {
             if (err) {
@@ -20,8 +22,8 @@ const readFile = (filePath) => {
     });
 };
 
-const writeOutputFile = (filePath, content) => {
-    return new Promise((resolve, reject) => {
+const writeOutputFile = (filePath: string, content: string) => {
+    return new Promise<void>((resolve, reject) => {
         fs.writeFile(filePath, content, 'utf8', (err) => {
             if (err) {
                 reject(err);
@@ -32,7 +34,7 @@ const writeOutputFile = (filePath, content) => {
     });
 };
 
-const createDir = (dirPath) => {
+const createDir = (dirPath: string) => {
     if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });
     }
@@ -53,9 +55,9 @@ const generateHtmlFile = async () => {
 
         await writeOutputFile(path.join(outputDir, outputFile), combinedContent);
 
-        console.log(`Le fichier ${outputFile} a été créé avec succès dans le dossier ${outputDir}.`);
+        console.log(`File ${outputFile} was created with success in folder ${outputDir}.`);
     } catch (error) {
-        console.error(`Une erreur est survenue: ${error.message}`);
+        console.error(`Error exception: ${(error as Error).message}`);
     }
 };
 

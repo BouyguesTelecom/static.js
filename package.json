@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "files": [
-    "config",
-    "helpers",
-    "scripts",
+    "dist/config",
+    "dist/helpers",
+    "dist/scripts",
     "package.json",
     "README.md"
   ],

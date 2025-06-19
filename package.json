@@ -11,10 +11,12 @@
   ],
   "bin": {
     "create-staticjs-app": "./scripts/create-static-app.js",
-    "bt-staticjs": "./scripts/cli.js"
+    "bt-staticjs": "./scripts/cli.js",
+    "generate-test-multiapps": "./scripts/generate-test-multiapps.js"
   },
   "scripts": {
     "build": "cd templates/react && rimraf dist && rimraf cache && node ../../helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../scripts/build-html.js",
+    "generate:test": "cd templates/react && node ../../scripts/generate-test-multiapps.js",
     "start": "cd templates/react && npm start"
   },
   "dependencies": {

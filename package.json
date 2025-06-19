@@ -16,7 +16,7 @@
   "scripts": {
     "build": "cd templates/react && rimraf dist && rimraf cache && node ../../helpers/cachePages.ts && vite build --config ../../vite.config.ts && tsx ../../scripts/build-html.ts",
     "start": "cd templates/react && npm start",
-    "prepare": "tsc -p ./tsconfig.json --noEmit"
+    "prepare": "tsc -p ./tsconfig.json"
   },
   "dependencies": {
     "@types/node": "^20",

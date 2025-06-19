@@ -8,10 +8,10 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "noEmit": true,
     "allowImportingTsExtensions": true,
     "importHelpers": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "noEmit": true,
   },
   "include": ["./**/*.ts"],
   "exclude": ["node_modules", "dist", "templates"]

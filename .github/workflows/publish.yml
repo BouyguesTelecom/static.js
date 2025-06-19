@@ -14,7 +14,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
-          node-version: "18.x"
+          node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
 
       - name: Extract version tag
@@ -24,6 +24,11 @@ jobs:
       - name: Change version for React package 📌
         run: |
           npm version --no-git-tag-version ${{ steps.get_version.outputs.VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm i
+          npm run prebuild
 
       - name: Publish React package on NPM 📦
         run: npm publish --access public

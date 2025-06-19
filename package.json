@@ -10,7 +10,7 @@
   "bin": {
     "create-staticjs-app": "./dist/scripts/create-static-app.js",
     "bt-staticjs": "./dist/scripts/cli.js",
-    "generate-test-multiapps": "./scripts/generate-test-multiapps.js"
+    "generate-test-multiapps": "./dist/scripts/generate-test-multiapps.js"
   },
   "scripts": {
     "prebuild": "tsc -p ./tsconfig.json",

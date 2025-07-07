@@ -1,158 +1,218 @@
-<div align="center">
+# React Template for StaticJS
 
-# 🚀 StaticJS
+This is a React template for creating static websites with StaticJS.
 
-**A modern boilerplate for creating static projects**
+## Getting Started
 
-[![npm version](https://badge.fury.io/js/%40bouygues-telecom%2Fstaticjs.svg)](https://badge.fury.io/js/%40bouygues-telecom%2Fstaticjs)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)](https://nodejs.org/)
-
-_Start your static projects in seconds with an optimized architecture_
-
-[Installation](#-installation) • [Usage](#-usage) • [Features](#-features) • [Examples](#-examples)
-
-</div>
-
-## 📖 Table of Contents
-
-- [🎯 About](#-about)
-- [✨ Features](#-features)
-- [🚀 Installation](#-installation)
-- [📘 Usage](#-usage)
-- [🔄 Revalidation](#-revalidation)
-- [⚙️ Configuration](#️-configuration)
-- [📚 Examples](#-examples)
-- [📄 License](#-license)
-
-## 🎯 About
-
-**StaticJS** is a powerful and modern boilerplate designed for creating static projects. It integrates development best practices and offers advanced features like specific page revalidation.
-
-### Why StaticJS?
-
-- ⚡ **Ultra-fast startup** - Initialize your project in seconds
-- 🔄 **Smart revalidation** - Rebuild specific pages on demand
-- 🏗️ **Modern architecture** - Optimized and maintainable project structure
-- 🚀 **Production ready** - Production-ready configuration
-- 📱 **Responsive** - Native support for all devices
-
-## ✨ Features
-
-| Feature                       | Description                                    |
-| ----------------------------- | ---------------------------------------------- |
-| 🚀 **Fast generation**        | Project creation with a single command         |
-| 🔄 **Hot Reloading**          | Automatic reload during development            |
-| 📦 **Optimized build**        | Production-optimized bundle                    |
-| 🎯 **Targeted revalidation**  | Specific page reconstruction via API           |
-| 🛠️ **Flexible configuration** | Advanced customization according to your needs |
-| 📊 **Performance**            | Automatic performance optimizations            |
-
-## 🚀 Installation
-
-### Prerequisites
-
-- Node.js >= 16.0.0
-- npm >= 7.0.0
-
-### Global installation
-
+1. Install dependencies:
 ```bash
-npm i @bouygues-telecom/staticjs -g
+npm install
 ```
 
-> 💡 **Tip**: Global installation allows you to use the `create-staticjs-app` command from anywhere on your system.
-
-## 📘 Usage
-
-### 1. Create a new project
-
+2. Start development server (recommended):
 ```bash
-create-staticjs-app
+npm run dev
 ```
 
-This command will:
-
-- 📁 Create the folder structure
-- ⚙️ Configure base files
-- 📦 Prepare the development environment
-
-### 2. Install dependencies
-
+3. Build for production:
 ```bash
-cd your-project
-npm i
+npm run build
 ```
 
-### 3. Build & Start the server
-
+4. Start production server:
 ```bash
-npm run start
+npm start
 ```
 
-🎉 **Your project is now accessible at** `http://localhost:3300`
+## Development Commands
 
-## 🔄 Revalidation
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | 🔥 **New!** Optimized dev server with smart hot reload |
+| `npm run watch` | Legacy dev server with nodemon |
+| `npm run build` | Production build |
+| `npm run start` | Build + production server |
 
-StaticJS offers a unique **targeted revalidation** feature that allows rebuilding specific pages without rebuilding the entire project.
+## Project Structure
 
-### Basic syntax
+```
+src/
+├── pages/          # Your pages (automatically routed)
+│   ├── page1.tsx   # Accessible at /page1.html
+│   ├── page2.tsx   # Accessible at /page2.html
+│   └── page3/
+│       └── [id].tsx # Dynamic route with getStaticPaths
+├── app.tsx         # Main app component
+└── layout.tsx      # Layout component
+```
+
+## Features
+
+- 🔥 **Smart Hot Reload** - Intelligent rebuild system with targeted updates
+- ⚡ **Fast Development** - Optimized build process for development
+- 📦 **Optimized Builds** - Production-ready static files
+- 🔄 **Automatic Routing** - File-based routing system
+- 📱 **Responsive Ready** - Mobile-first design support
+- 🎯 **Targeted Revalidation** - Rebuild specific pages via API
+
+## Development Server
+
+The new development server (`npm run dev`) offers significant improvements:
+
+- **50% faster rebuilds** compared to the legacy system
+- **Smart file watching** with debounced rebuilds
+- **Hot reload** that actually works without manual refresh
+- **Build metrics** and detailed logging
+- **Queue system** for handling multiple simultaneous changes
+
+For detailed information about the development server, see [DEV_SERVER.md](./DEV_SERVER.md).
+
+## Creating Pages
+
+### Static Pages
+
+Create a `.tsx` file in `src/pages/`:
+
+```tsx
+// src/pages/about.tsx
+export default function About() {
+  return (
+    <div>
+      <h1>About Us</h1>
+      <p>This is the about page.</p>
+    </div>
+  );
+}
+```
+
+### Pages with Data
+
+Use `getStaticProps` to fetch data at build time:
+
+```tsx
+// src/pages/blog.tsx
+export default function Blog({ data }) {
+  return (
+    <div>
+      <h1>Blog</h1>
+      {data.posts.map(post => (
+        <article key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.excerpt}</p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+export async function getStaticProps() {
+  const posts = await fetch('https://api.example.com/posts').then(r => r.json());
+  
+  return {
+    props: {
+      data: { posts }
+    }
+  };
+}
+```
+
+### Dynamic Routes
+
+Create dynamic pages using bracket notation:
+
+```tsx
+// src/pages/blog/[slug].tsx
+export default function BlogPost({ data }) {
+  return (
+    <div>
+      <h1>{data.post.title}</h1>
+      <div>{data.post.content}</div>
+    </div>
+  );
+}
+
+export async function getStaticPaths() {
+  const posts = await fetch('https://api.example.com/posts').then(r => r.json());
+  
+  return {
+    paths: posts.map(post => ({
+      params: { slug: post.slug }
+    }))
+  };
+}
+
+export async function getStaticProps({ params }) {
+  const post = await fetch(`https://api.example.com/posts/${params.slug}`).then(r => r.json());
+  
+  return {
+    props: {
+      data: { post }
+    }
+  };
+}
+```
+
+## Revalidation API
+
+Rebuild specific pages without rebuilding the entire project:
 
 ```bash
+# Revalidate a single page
 curl -X POST http://localhost:3000/revalidate \
   -H "Content-Type: application/json" \
-  -d '{ "paths": ["page.tsx"] }'
-```
+  -d '{ "paths": ["blog.tsx"] }'
 
-## 📚 Examples
-
-#### Revalidate a single page
-
-```bash
+# Revalidate multiple pages
 curl -X POST http://localhost:3000/revalidate \
   -H "Content-Type: application/json" \
-  -d '{ "paths": ["home.tsx"] }'
+  -d '{ "paths": ["blog.tsx", "about.tsx"] }'
 ```
 
-#### Revalidate multiple pages
+## Configuration
 
-```bash
-curl -X POST http://localhost:3000/revalidate \
-  -H "Content-Type: application/json" \
-  -d '{ "paths": ["home.tsx", "about.tsx", "contact.tsx"] }'
+### Vite Configuration
+
+The project uses Vite for building. You can customize the build in `vite.config.js`:
+
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  // Your custom configuration
+});
 ```
 
-## ⚙️ Configuration
+### Development Server Configuration
 
-### Project structure
+Customize the development server in `vite.dev.config.js`:
 
+```javascript
+export default defineConfig({
+  server: {
+    port: 3300,
+    host: true,
+    open: '/page1.html',
+  },
+  // Custom plugins and configuration
+});
 ```
-your-project/
-├── 📁 src/
-│   ├── 📁 pages/          # Your pages
-│   ├── 📁 components/     # Reusable components
-│   ├── 📁 styles/         # Style files
-│   └── 📁 utils/          # Utilities
-├── 📁 public/             # Static assets
-├── 📄 package.json
-└── 📄 server.js           # StaticJS server
-```
 
-## 🛠️ Available scripts
+## Troubleshooting
 
-| Script          | Description                      |
-| --------------- | -------------------------------- |
-| `npm run build` | Build the project for production |
-| `npm run start` | Start the production server      |
+### Common Issues
 
-## 📄 License
+1. **Hot reload not working**: Make sure you're using `npm run dev` instead of `npm run watch`
+2. **Build errors**: Check the console for TypeScript or build errors
+3. **Port conflicts**: Change the port in `vite.dev.config.js` if 3300 is occupied
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+### Getting Help
+
+- Check the [DEV_SERVER.md](./DEV_SERVER.md) for development server details
+- Review the console logs for error messages
+- Ensure all dependencies are installed with `npm install`
 
 ---
 
-<div align="center">
-
-**Developed with ❤️ by the Bouygues Telecom team**
-
-</div>
+**Built with ❤️ using StaticJS**

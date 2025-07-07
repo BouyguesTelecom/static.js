@@ -42,7 +42,7 @@ _Start your static projects in seconds with an optimized architecture_
 | Feature                       | Description                                    |
 | ----------------------------- | ---------------------------------------------- |
 | 🚀 **Fast generation**        | Project creation with a single command         |
-| 🔄 **Hot Reloading**          | Automatic reload during development            |
+| 🔥 **Smart Hot Reload**       | Intelligent rebuild with targeted updates     |
 | 📦 **Optimized build**        | Production-optimized bundle                    |
 | 🎯 **Targeted revalidation**  | Specific page reconstruction via API           |
 | 🛠️ **Flexible configuration** | Advanced customization according to your needs |

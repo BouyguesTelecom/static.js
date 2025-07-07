@@ -19,12 +19,12 @@ interface DataProps {
 
 const Page1: ({data}: DataProps) => React.JSX.Element = ({ data }: DataProps) => {
   useEffect(() => {
-    console.log("Page1 loaded !");
+    console.log("Page1 loaded !!!!!");
   }, []);
 
   return (
     <div>
-      <p className="title">Page ID: {data?.id}</p>
+      <p className="title">✅ HOT RELOAD FONCTIONNE: {data?.id}</p>
       <button className="button is-primary" onClick={() => console.log(data)}>
         Click me!
       </button>

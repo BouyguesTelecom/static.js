@@ -21,7 +21,7 @@ const srcDir = path.resolve(process.cwd(), 'src');
 let isBuilding = false;
 let buildTimeout;
 
-// WebSocket pour hot reload
+// WebSocket for hot reload
 const clients = new Set();
 
 wss.on('connection', (ws) => {
@@ -54,7 +54,7 @@ async function triggerBuild() {
         const duration = Date.now() - start;
         console.log(`[staticjs] ✅ Build completed in ${duration}ms`);
         
-        // Attendre un peu que les fichiers soient écrits
+        // Wait a bit for files to be written
         setTimeout(() => {
             console.log('[staticjs] 🔄 Broadcasting reload...');
             broadcastReload();
@@ -67,7 +67,7 @@ async function triggerBuild() {
     }
 }
 
-// Middleware pour injecter le script de hot reload
+// Middleware to inject hot reload script
 app.use((req, res, next) => {
     if (req.path.endsWith('.html')) {
         const filePath = path.join(distDir, req.path);
@@ -75,7 +75,7 @@ app.use((req, res, next) => {
         if (fs.existsSync(filePath)) {
             let html = fs.readFileSync(filePath, 'utf8');
             
-            // Injecter le script de hot reload
+            // Inject hot reload script
             const hotReloadScript = `
 <script>
 (function() {
@@ -104,7 +104,7 @@ app.use((req, res, next) => {
 })();
 </script>`;
             
-            // Injecter avant la fermeture du body
+            // Inject before body closing tag
             html = html.replace('</body>', hotReloadScript + '\n</body>');
             
             res.setHeader('Content-Type', 'text/html');
@@ -116,10 +116,10 @@ app.use((req, res, next) => {
     next();
 });
 
-// Servir les fichiers statiques
+// Serve static files
 app.use(express.static(distDir));
 
-// Watcher pour les changements de fichiers
+// File watcher for changes
 const srcWatcher = chokidar.watch(srcDir, { 
     ignoreInitial: true,
     ignored: /(^|[\/\\])\../,
@@ -150,14 +150,14 @@ srcWatcher.on('unlink', (filePath) => {
     buildTimeout = setTimeout(triggerBuild, 300);
 });
 
-// Démarrer le serveur
+// Start the server
 server.listen(PORT, () => {
     console.log(`[staticjs] 🚀 Dev server running at http://localhost:${PORT}`);
     console.log(`[staticjs] 👀 Watching ${srcDir} for changes...`);
     console.log(`[staticjs] 🔥 Hot reload enabled`);
 });
 
-// Gestion propre de l'arrêt
+// Clean shutdown handling
 process.on('SIGINT', () => {
     console.log('\n[staticjs] 🛑 Shutting down dev server...');
     srcWatcher.close();

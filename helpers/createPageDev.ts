@@ -26,10 +26,10 @@ export const createPageDev = ({
   JSfileName,
   isDev = false,
 }: IcreatePageDev) => {
-  // Script de hot reload pour le développement
+  // Hot reload script for development
   const hotReloadScript = isDev ? `
 <script type="module">
-  // Hot reload client pour StaticJS
+  // Hot reload client for StaticJS
   const ws = new WebSocket('ws://localhost:3300');
   
   ws.onmessage = (event) => {
@@ -46,7 +46,7 @@ export const createPageDev = ({
   
   ws.onclose = () => {
     console.log('[staticjs] ❌ Hot reload disconnected');
-    // Tentative de reconnexion après 1 seconde
+    // Attempt reconnection after 1 second
     setTimeout(() => {
       window.location.reload();
     }, 1000);

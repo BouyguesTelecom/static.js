@@ -24,7 +24,7 @@ const Page1: ({data}: DataProps) => React.JSX.Element = ({ data }: DataProps) =>
 
   return (
     <div>
-      <p className="title">✅ HOT RELOAD FONCTIONNE: {data?.id}</p>
+      <p className="title">Page ID: {data?.id}</p>
       <button className="button is-primary" onClick={() => console.log(data)}>
         Click me!
       </button>

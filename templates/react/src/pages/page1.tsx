@@ -19,7 +19,7 @@ interface DataProps {
 
 const Page1: ({data}: DataProps) => React.JSX.Element = ({ data }: DataProps) => {
   useEffect(() => {
-    console.log("Page1 loaded !");
+    console.log("Page1 loaded !!!!!");
   }, []);
 
   return (

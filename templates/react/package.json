@@ -6,7 +6,10 @@
   "scripts": {
     "lint": "eslint .",
     "build": "bt-staticjs build",
+    "build:dev": "node scripts/build-dev.js",
     "generate:test:multiapps": "generate-test-multiapps generate:test",
+    "dev": "node scripts/dev.js",
+    "test:dev": "node scripts/test-dev-server.js",
     "watch": "nodemon",
     "serve": "vite --config vite.server.config.js",
     "start": "npm run build && npm run serve"
@@ -15,7 +18,8 @@
     "express": "^5.1.0",
     "path": "^0.12.7",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@bouygues-telecom/staticjs": "*",

@@ -1,16 +1,3 @@
 {
-  "compilerOptions": {
-    "outDir": "build",
-    "target": "ESNext",
-    "module": "ESNext",
-    "jsx": "react",
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["src"]
+  "extends": "./tsconfig.base.json",
 }

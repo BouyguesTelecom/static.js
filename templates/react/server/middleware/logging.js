@@ -8,11 +8,6 @@
  */
 export const loggingMiddleware = (req, res, next) => {
     const timestamp = new Date().toISOString();
-    const userAgent = req.get('User-Agent') || 'Unknown';
-    const ip = req.ip || req.connection.remoteAddress || 'Unknown';
-
-    console.log(`[${timestamp}] ${req.method} ${req.url} - IP: ${ip} - User-Agent: ${userAgent.substring(0, 100)}`);
-
     // Log response time
     const startTime = Date.now();
     res.on('finish', () => {

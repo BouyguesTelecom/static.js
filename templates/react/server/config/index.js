@@ -4,7 +4,7 @@
  */
 
 export const CONFIG = {
-    PORT: process.env.PORT || 3000,
+    PORT: process.env.PORT || 3456,
     NODE_ENV: process.env.NODE_ENV || 'development',
     STATIC_DIR: 'dist',
     REQUEST_TIMEOUT: 30000, // 30 seconds

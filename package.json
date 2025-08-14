@@ -17,7 +17,8 @@
     "build": "cd templates/react && rimraf dist && rimraf cache && node ../../dist/helpers/cachePages.js && vite build --config ../../vite.config.js && tsx ../../dist/scripts/build-html.js",
     "generate:test": "cd templates/react && node ../../scripts/generate-test-multiapps.js",
     "start": "cd templates/react && npm start",
-    "dev": "cd templates/react && npm run dev"
+    "dev": "cd templates/react && npm run dev",
+    "build:templates": "cd templates/react && npm run build"
   },
   "dependencies": {
     "@types/node": "^20",

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "dev": "tsx server.js",
     "lint": "eslint .",
     "build": "bt-staticjs build",
     "generate:test:multiapps": "generate-test-multiapps generate:test",
@@ -12,7 +13,11 @@
     "start": "npm run build && npm run serve"
   },
   "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
     "path": "^0.12.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

@@ -13,6 +13,7 @@ interface IcreatePage {
   rootId:string,
   pageName:string,
   JSfileName:string | false,
+  returnHtml?: boolean, // New optional parameter for runtime rendering
 }
 
 export const createPage = ({
@@ -23,6 +24,7 @@ export const createPage = ({
   rootId,
   pageName,
   JSfileName,
+  returnHtml = false, // Default to false for backward compatibility
 }: IcreatePage) => {
   const template = `
 <div id=app-{{rootId}}>{{html}}
@@ -42,5 +44,10 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     .replace("{{html}}", ReactDOMServer.renderToString(component))
     .replace("{{scriptPath}}", `${JSfileName}.js`);
 
-  fs.writeFileSync(path.join(outputDir, `${pageName}.html`), htmlContent);
+  // Return HTML string for runtime rendering or write to file for build time
+  if (returnHtml) {
+    return htmlContent;
+  } else {
+    fs.writeFileSync(path.join(outputDir, `${pageName}.html`), htmlContent);
+  }
 };

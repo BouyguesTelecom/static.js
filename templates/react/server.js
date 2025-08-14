@@ -12,6 +12,8 @@ import compression from "compression";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { createServer as createViteServer } from "vite";
+import fs from "fs";
 
 // =============================================================================
 // CONFIGURATION CONSTANTS
@@ -31,6 +33,26 @@ const CONFIG = {
 
 const isDevelopment = CONFIG.NODE_ENV === 'development';
 const isProduction = CONFIG.NODE_ENV === 'production';
+
+// =============================================================================
+// VITE SERVER INITIALIZATION (DEVELOPMENT MODE)
+// =============================================================================
+
+let viteServer = null;
+
+if (isDevelopment) {
+    try {
+        // Create Vite server for development mode JS compilation
+        viteServer = await createViteServer({
+            server: { middlewareMode: true },
+            appType: 'custom',
+            configFile: './vite.config.js'
+        });
+        console.log('✅ Vite server initialized for JS compilation');
+    } catch (error) {
+        console.error('❌ Failed to initialize Vite server:', error);
+    }
+}
 
 // =============================================================================
 // EXPRESS APP INITIALIZATION

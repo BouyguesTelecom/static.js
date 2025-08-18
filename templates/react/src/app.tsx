@@ -1,14 +1,11 @@
-import { Layout } from "@/layout";
+import {Layout} from "@/layout";
 import React from "react";
-// Test comment for hot reload
 
-export const App: React.FC<{ Component: React.FC; props: {} }> = ({
-  Component,
-  props,
-}) => {
-  return (
-    <Layout>
-      <Component {...props} />
-    </Layout>
-  );
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const App: React.FC<{ Component: React.FC; props: any }> = ({Component, props}) => {
+    return (
+        <Layout>
+            <Component {...props} />
+        </Layout>
+    );
 };

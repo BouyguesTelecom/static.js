@@ -1,5 +1,4 @@
 {
-  "_test_comment": "hot reload test",
   "name": "examples-react",
   "private": true,
   "version": "1.0.0",
@@ -19,7 +18,6 @@
   },
   "dependencies": {
     "@static-js/server": "*",
-    "path": "^0.12.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },

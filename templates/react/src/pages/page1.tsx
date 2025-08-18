@@ -23,13 +23,13 @@ const Page1: React.FC<DataProps> = ({data}) => {
     }, []);
 
     return (
-        <div>
+        <>
             <p className="title">Page ID: {data?.id}</p>
             <p>I'm a ninja!</p>
             <button className="button is-primary" onClick={() => console.log(data)}>
                 Click me!
             </button>
-        </div>
+        </>
     );
 };
 

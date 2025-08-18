@@ -5,6 +5,7 @@
 
 import helmet from "helmet";
 import cors from "cors";
+import { Express } from "express";
 import { isDevelopment } from "../config/index.js";
 
 /**
@@ -35,7 +36,7 @@ export const corsMiddleware = cors({
 /**
  * Apply security middleware to Express app
  */
-export const applySecurity = (app) => {
+export const applySecurity = (app: Express): void => {
     app.use(securityMiddleware);
     
     if (isDevelopment) {

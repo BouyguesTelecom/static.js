@@ -3,10 +3,12 @@
  * Handles request logging with timestamps and details
  */
 
+import { Request, Response, NextFunction, Express } from "express";
+
 /**
  * Request logging middleware with timestamps and details
  */
-export const loggingMiddleware = (req, res, next) => {
+export const loggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
     const timestamp = new Date().toISOString();
     // Log response time
     const startTime = Date.now();
@@ -21,6 +23,6 @@ export const loggingMiddleware = (req, res, next) => {
 /**
  * Apply logging middleware to Express app
  */
-export const applyLogging = (app) => {
+export const applyLogging = (app: Express): void => {
     app.use(loggingMiddleware);
 };

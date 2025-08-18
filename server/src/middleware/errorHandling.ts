@@ -3,12 +3,18 @@
  * Handles 404 errors and global error handling
  */
 
+import { Request, Response, NextFunction, Express } from "express";
 import { isDevelopment } from "../config/index.js";
+
+interface CustomError extends Error {
+    status?: number;
+    statusCode?: number;
+}
 
 /**
  * 404 handler for unmatched routes
  */
-export const notFoundHandler = (req, res) => {
+export const notFoundHandler = (req: Request, res: Response): void => {
     res.status(404).json({
         success: false,
         error: 'Not Found',
@@ -20,7 +26,7 @@ export const notFoundHandler = (req, res) => {
 /**
  * Global error handling middleware
  */
-export const globalErrorHandler = (err, req, res, next) => {
+export const globalErrorHandler = (err: CustomError, req: Request, res: Response, next: NextFunction): void => {
     const timestamp = new Date().toISOString();
     const status = err.status || err.statusCode || 500;
 
@@ -46,7 +52,7 @@ export const globalErrorHandler = (err, req, res, next) => {
 /**
  * Apply error handling middleware to Express app
  */
-export const applyErrorHandling = (app) => {
+export const applyErrorHandling = (app: Express): void => {
     // 404 handler for unmatched routes
     app.use(notFoundHandler);
     

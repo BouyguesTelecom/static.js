@@ -1,23 +1,24 @@
 {
+  "_test_comment": "hot reload test",
   "name": "examples-react",
   "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server/index.js",
+    "dev": "NODE_ENV=development tsx server.js",
+    "dev:watch": "concurrently \"cd ../../server && npm run watch\" \"npm run dev\"",
+    "dev:build": "npm run build && npm run dev",
+    "dev:legacy": "node scripts/validate-setup.js && tsx server.js || (echo '🔧 Running initial build...' && npm run build && tsx server.js)",
+    "validate-setup": "node scripts/validate-setup.js",
     "lint": "eslint .",
     "build": "bt-staticjs build",
     "generate:test:multiapps": "generate-test-multiapps generate:test",
     "watch": "nodemon",
     "serve": "vite --config vite.server.config.js",
-    "start": "npm run build && npm run serve"
+    "start": "npm run build && NODE_ENV=production tsx server.js"
   },
   "dependencies": {
-    "compression": "^1.8.1",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "express-rate-limit": "^8.0.1",
-    "helmet": "^8.1.0",
+    "@static-js/server": "*",
     "path": "^0.12.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
@@ -28,7 +29,6 @@
     "@types/react": "^19.1.5",
     "@types/react-dom": "^19.1.5",
     "@vitejs/plugin-react": "^4.4.1",
-    "chokidar": "^3.5.3",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",

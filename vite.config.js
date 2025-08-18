@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "templates/react/src"),
+      "@static-js/server": path.resolve(__dirname, "server/dist/src/index.js"),
     },
   },
   define: {

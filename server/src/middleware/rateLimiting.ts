@@ -4,6 +4,7 @@
  */
 
 import rateLimit from "express-rate-limit";
+import { Express } from "express";
 import { CONFIG } from "../config/index.js";
 
 /**
@@ -37,6 +38,6 @@ export const revalidateLimiter = rateLimit({
 /**
  * Apply rate limiting middleware to Express app
  */
-export const applyRateLimiting = (app) => {
+export const applyRateLimiting = (app: Express): void => {
     app.use(generalLimiter);
 };

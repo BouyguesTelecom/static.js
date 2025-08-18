@@ -11,7 +11,17 @@
     "importHelpers": true,
     "outDir": "./dist",
     "emitDeclarationOnly": false,
+    "baseUrl": ".",
+    "paths": {
+      "@static-js/server": ["./server/dist/src/index.js"],
+      "@static-js/server/*": ["./server/dist/src/*"]
+    }
   },
   "include": ["config", "helpers", "scripts"],
-  "exclude": ["node_modules", "dist", "templates"]
+  "exclude": ["node_modules", "dist", "templates", "server/node_modules", "server/dist"],
+  "references": [
+    {
+      "path": "./server"
+    }
+  ]
 }

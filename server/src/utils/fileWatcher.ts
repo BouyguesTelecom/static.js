@@ -1,0 +1,213 @@
+/**
+ * File watcher system for hot reloading
+ * Watches source files and triggers WebSocket broadcasts on changes
+ */
+
+import chokidar, { FSWatcher } from 'chokidar';
+import path from 'path';
+import { broadcastReload } from './websocket.js';
+import { isDevelopment } from '../config/index.js';
+import { invalidateRuntimeCache } from '../middleware/runtime.js';
+
+type ReloadType = 'style' | 'page' | 'full' | 'asset';
+type FileEvent = 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir';
+
+let watcher: FSWatcher | null = null;
+let debounceTimer: NodeJS.Timeout | null = null;
+const DEBOUNCE_DELAY = 300; // 300ms debounce
+
+/**
+ * Determine reload type based on file extension
+ */
+const getReloadType = (filePath: string): ReloadType => {
+    const ext = path.extname(filePath).toLowerCase();
+    
+    switch (ext) {
+        case '.css':
+        case '.scss':
+        case '.sass':
+        case '.less':
+            return 'style';
+        
+        case '.tsx':
+        case '.jsx':
+        case '.ts':
+        case '.js':
+            return 'page';
+        
+        case '.json':
+        case '.config.js':
+        case '.config.ts':
+            return 'full';
+        
+        case '.png':
+        case '.jpg':
+        case '.jpeg':
+        case '.gif':
+        case '.svg':
+        case '.ico':
+        case '.woff':
+        case '.woff2':
+        case '.ttf':
+        case '.eot':
+            return 'asset';
+        
+        default:
+            return 'page';
+    }
+};
+
+/**
+ * Handle file change with debouncing
+ */
+const handleFileChange = (eventType: FileEvent, filePath: string): void => {
+    // Clear existing timer
+    if (debounceTimer) {
+        clearTimeout(debounceTimer);
+    }
+
+    // Set new timer
+    debounceTimer = setTimeout(async () => {
+        const reloadType = getReloadType(filePath);
+        const relativePath = path.relative(process.cwd(), filePath);
+        
+        console.log(`[FileWatcher] ${eventType}: ${relativePath} (${reloadType} reload)`);
+        
+        // Invalidate runtime cache when source files change
+        if (relativePath.includes('src/') || relativePath.includes('src\\')) {
+            console.log('[FileWatcher] Invalidating runtime cache due to source file change');
+            await invalidateRuntimeCache();
+        }
+        
+        // Broadcast reload message to WebSocket clients
+        broadcastReload(reloadType, {
+            file: relativePath,
+            event: eventType,
+            timestamp: Date.now()
+        });
+        
+        debounceTimer = null;
+    }, DEBOUNCE_DELAY);
+};
+
+/**
+ * Initialize file watcher
+ */
+export const initializeFileWatcher = (): FSWatcher | null => {
+    if (!isDevelopment) {
+        console.log('[FileWatcher] Skipping file watcher initialization in production mode');
+        return null;
+    }
+
+    try {
+        // Define paths to watch
+        const watchPaths = [
+            'src/**/*',           // All source files
+            'package.json',       // Dependency changes
+            'vite.config.js',     // Vite configuration
+            'tsconfig.json',      // TypeScript configuration
+            'eslint.config.js'    // ESLint configuration
+        ];
+
+        // Create watcher with options
+        watcher = chokidar.watch(watchPaths, {
+            ignored: [
+                '**/node_modules/**',
+                '**/dist/**',
+                '**/cache/**',
+                '**/.git/**',
+                '**/coverage/**',
+                '**/*.log',
+                '**/.*'
+            ],
+            ignoreInitial: true,
+            persistent: true,
+            awaitWriteFinish: {
+                stabilityThreshold: 100,
+                pollInterval: 50
+            }
+        });
+
+        // Set up event handlers
+        watcher
+            .on('add', (filePath: string) => handleFileChange('add', filePath))
+            .on('change', (filePath: string) => handleFileChange('change', filePath))
+            .on('unlink', (filePath: string) => handleFileChange('unlink', filePath))
+            .on('addDir', (dirPath: string) => {
+                console.log(`[FileWatcher] Directory added: ${path.relative(process.cwd(), dirPath)}`);
+            })
+            .on('unlinkDir', (dirPath: string) => {
+                console.log(`[FileWatcher] Directory removed: ${path.relative(process.cwd(), dirPath)}`);
+                // Trigger full reload when directories are removed
+                broadcastReload('full', {
+                    directory: path.relative(process.cwd(), dirPath),
+                    event: 'unlinkDir'
+                });
+            })
+            .on('error', (error: Error) => {
+                console.error('[FileWatcher] Watcher error:', error);
+            })
+            .on('ready', () => {
+                const watchedPaths = Object.keys(watcher!.getWatched());
+                console.log(`[FileWatcher] File watcher initialized, watching ${watchedPaths.length} directories`);
+            });
+
+        return watcher;
+    } catch (error) {
+        console.error('[FileWatcher] Failed to initialize file watcher:', error);
+        return null;
+    }
+};
+
+/**
+ * Get current file watcher instance
+ */
+export const getFileWatcher = (): FSWatcher | null => watcher;
+
+/**
+ * Get watched files count
+ */
+export const getWatchedFilesCount = (): number => {
+    if (!watcher) return 0;
+    
+    const watched = watcher.getWatched();
+    return Object.values(watched).reduce((total: number, files: string[]) => total + files.length, 0);
+};
+
+/**
+ * Close file watcher and cleanup
+ */
+export const closeFileWatcher = async (): Promise<void> => {
+    if (!watcher) {
+        return;
+    }
+
+    return new Promise<void>((resolve) => {
+        console.log('[FileWatcher] Closing file watcher...');
+        
+        // Clear debounce timer
+        if (debounceTimer) {
+            clearTimeout(debounceTimer);
+            debounceTimer = null;
+        }
+
+        // Close watcher
+        watcher!.close().then(() => {
+            console.log('[FileWatcher] File watcher closed');
+            watcher = null;
+            resolve();
+        }).catch((error: Error) => {
+            console.error('[FileWatcher] Error closing file watcher:', error);
+            watcher = null;
+            resolve();
+        });
+    });
+};
+
+/**
+ * Manually trigger a reload (useful for testing)
+ */
+export const triggerReload = (type: ReloadType = 'page', data: Record<string, any> = {}): void => {
+    console.log(`[FileWatcher] Manually triggering ${type} reload`);
+    broadcastReload(type, { ...data, manual: true });
+};

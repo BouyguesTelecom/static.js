@@ -1,7 +1,13 @@
 import path from "path";
 import { defineConfig } from "vite";
 import { addHydrationCodePlugin, noJsPlugin } from "./config/vite.plugin";
-import entries from "./templates/react/cache/pagesCache.json";
+import { loadCacheEntries } from "./helpers/cachePages.js";
+
+// Load cache entries using the refactored helper function
+const entries = loadCacheEntries("templates/react", {
+  verbose: true,
+  rootDir: __dirname
+});
 
 export default defineConfig({
   resolve: {

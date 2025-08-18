@@ -177,13 +177,25 @@ your-project/
 
 ### Hot Reloading
 
-The development server includes hot reloading for:
-- ✅ React components
-- ✅ TypeScript/JavaScript files
-- ✅ CSS and styling changes
-- ✅ Page routing updates
+The development server includes **WebSocket-based hot reloading** for:
+- ✅ React components (`.tsx`, `.jsx`)
+- ✅ TypeScript/JavaScript files (`.ts`, `.js`)
+- ✅ CSS and styling changes (`.css`, `.scss`, `.sass`, `.less`)
+- ✅ Static assets (images, fonts)
+- ✅ Configuration files (triggers full reload)
 
-> 🔧 **Troubleshooting**: If hot reloading stops working, try `npm run dev:force-build`
+**Features**:
+- 🔄 **Instant reloads** - Changes reflected in < 300ms
+- 🎯 **Smart reload types** - CSS changes don't trigger full page reload
+- 📍 **Scroll preservation** - Maintains scroll position across reloads
+- 🔗 **Auto-reconnection** - Reconnects automatically if connection is lost
+- 👁️ **Visual indicators** - Connection status and reload notifications
+
+> 🔧 **Troubleshooting**:
+> - Check for green status indicator in top-right corner
+> - If hot reloading stops working, try `npm run dev:force-build`
+> - Visit `/hot-reload-client.js` to verify client script loads
+> - Check browser console for `[HotReload]` messages
 
 ## 📄 License
 

@@ -7,13 +7,7 @@ const Index: () => React.JSX.Element = () => {
 
   return (
     <div>
-      <h1 className="title">🚀 StaticJS - SERVER DEBUGGING COMPLETE! ✅ (All Issues Fixed)</h1>
-      <p>This is the home page rendered at runtime using StaticJS helpers. Server startup issues resolved: port conflicts, duplicate initialization, and WebSocket conflicts fixed! ✅</p>
-      <div style={{background: '#d4edda', padding: '15px', borderRadius: '8px', margin: '15px 0', border: '2px solid #28a745'}}>
-        <strong>✅ Hot Reload Status:</strong> WORKING PERFECTLY!
-        <br />
-        <small>File changes are detected, cache is invalidated, and WebSocket broadcasts reload messages.</small>
-      </div>
+      <h1 className="title">🚀 StaticJS</h1>
       <div>
         <h2>Available Pages:</h2>
         <ul>

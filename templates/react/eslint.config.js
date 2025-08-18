@@ -21,7 +21,12 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
-        { allowConstantExport: true },
+        {
+          allowConstantExport: true,
+          // Allow StaticJS framework functions (similar to Next.js)
+          // These functions are consumed by the framework during build time
+          allowExportNames: ['getStaticProps', 'getStaticPaths']
+        },
       ],
     },
   },

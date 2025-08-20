@@ -30,7 +30,7 @@ program
             });
 
             console.log("\n2️⃣ Building static HTML files from TSX...");
-            const staticHtmlFilesBuildCommand = 'node ../../lib/_build/scripts/build-html.js';
+            const staticHtmlFilesBuildCommand = 'npx tsx ../../lib/scripts/build-html.ts';
             execSync(staticHtmlFilesBuildCommand, {
                 stdio: 'inherit',
                 cwd: process.cwd()

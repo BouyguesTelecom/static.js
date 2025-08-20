@@ -17,12 +17,13 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
     if (isDevelopment) {
         // Check if Vite server is already initialized
         if (viteServer) {
-            console.log('⚠️  Vite server already initialized, skipping...');
+            // Vite server already initialized
             return viteServer;
         }
         
         try {
-            console.log('[Vite] Initializing Vite server...');
+            // Initializing Vite server
+            
             // Create Vite server for development mode JS compilation
             viteServer = await createViteServer({
                 server: {
@@ -32,13 +33,13 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
                     }
                 },
                 appType: 'custom',
-                configFile: '../../vite.config.js'
+                configFile: '../../server/src/config/vite.config.js'
             });
-            console.log('✅ Vite server initialized for JS compilation');
+            
+            // Vite server initialized
             
             // Add Vite's middleware to handle dependency requests
             app.use(viteServer.middlewares);
-            console.log('✅ Vite middleware registered for dependency serving');
             
             // Register JavaScript serving middleware after Vite server is ready
             registerJavaScriptMiddleware(app, viteServer);
@@ -62,7 +63,7 @@ export const closeViteServer = async (): Promise<void> => {
     if (viteServer) {
         try {
             await viteServer.close();
-            console.log('✅ Vite server closed successfully');
+            // Vite server closed
         } catch (error) {
             console.error('❌ Error closing Vite server:', error);
         }

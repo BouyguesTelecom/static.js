@@ -23,8 +23,7 @@ export const revalidate = (req: Request, res: Response) => {
         return;
       }
       if (!error) {
-        console.log(`stdout: ${stdout}`);
-        console.error(`stderr: ${stderr}`);
+        // Revalidation output (silent)
       }
     });
 

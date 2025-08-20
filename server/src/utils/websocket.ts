@@ -29,7 +29,7 @@ let clients: Set<WebSocket> = new Set();
  */
 export const initializeWebSocketServer = (httpServer: HttpServer): WebSocketServer | null => {
     if (!isDevelopment) {
-        console.log('[WebSocket] Skipping WebSocket server initialization in production mode');
+        // Skipping WebSocket server in production mode
         return null;
     }
 
@@ -41,7 +41,7 @@ export const initializeWebSocketServer = (httpServer: HttpServer): WebSocketServ
         });
 
         wss.on('connection', (ws: WebSocket, req) => {
-            console.log(`[WebSocket] Client connected from ${req.socket.remoteAddress}`);
+            // Client connected
             clients.add(ws);
 
             // Send welcome message
@@ -52,7 +52,7 @@ export const initializeWebSocketServer = (httpServer: HttpServer): WebSocketServ
 
             // Handle client disconnect
             ws.on('close', () => {
-                console.log('[WebSocket] Client disconnected');
+                // Client disconnected
                 clients.delete(ws);
             });
 
@@ -87,7 +87,7 @@ export const initializeWebSocketServer = (httpServer: HttpServer): WebSocketServ
             clearInterval(pingInterval);
         });
 
-        console.log('[WebSocket] WebSocket server initialized for hot reloading');
+        // WebSocket server initialized
         return wss;
     } catch (error) {
         console.error('[WebSocket] Failed to initialize WebSocket server:', error);
@@ -104,7 +104,7 @@ export const broadcastReload = (type: string = 'page', data: Record<string, any>
     }
 
     if (!wss) {
-        console.warn('[WebSocket] WebSocket server not initialized, cannot broadcast reload');
+        // WebSocket server not initialized
         return;
     }
 
@@ -135,15 +135,7 @@ export const broadcastReload = (type: string = 'page', data: Record<string, any>
         }
     });
 
-    if (sentCount > 0) {
-        console.log(`[WebSocket] Broadcasted ${type} reload to ${sentCount} client(s)`);
-    } else if (clients.size === 0) {
-        console.log('[WebSocket] No clients connected to broadcast reload message');
-    }
-    
-    if (deadConnections > 0) {
-        console.log(`[WebSocket] Cleaned up ${deadConnections} dead connection(s)`);
-    }
+    // Reload broadcast completed (silent)
 };
 
 /**
@@ -165,7 +157,7 @@ export const closeWebSocketServer = async (): Promise<void> => {
     }
 
     return new Promise<void>((resolve) => {
-        console.log('[WebSocket] Closing WebSocket server...');
+        // Closing WebSocket server
         
         // Close all client connections
         clients.forEach((ws: WebSocket) => {
@@ -177,7 +169,7 @@ export const closeWebSocketServer = async (): Promise<void> => {
 
         // Close the server
         wss!.close(() => {
-            console.log('[WebSocket] WebSocket server closed');
+            // WebSocket server closed
             wss = null;
             resolve();
         });

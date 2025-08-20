@@ -55,7 +55,7 @@ const generateHtmlFile = async () => {
 
         await writeOutputFile(path.join(outputDir, outputFile), combinedContent);
 
-        console.log(`File ${outputFile} was created with success in folder ${outputDir}.`);
+        // File created successfully (silent)
     } catch (error) {
         console.error(`Error exception: ${(error as Error).message}`);
     }

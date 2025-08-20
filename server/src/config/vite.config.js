@@ -1,19 +1,22 @@
 import path from "path";
 import { defineConfig } from "vite";
-import { addHydrationCodePlugin, noJsPlugin } from "./config/vite.plugin";
-import { loadCacheEntries } from "./helpers/cachePages.js";
+import { addHydrationCodePlugin, noJsPlugin } from "./vite.plugin";
+import { loadCacheEntries } from "../helpers/cachePages.js";
+
+// Fix: Use project root directory instead of config directory
+const projectRoot = path.resolve(__dirname, '../../../');
 
 // Load cache entries using the refactored helper function
 const entries = loadCacheEntries("templates/react", {
   verbose: true,
-  rootDir: __dirname
+  rootDir: projectRoot
 });
 
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "templates/react/src"),
-      "@static-js/server": path.resolve(__dirname, "server/dist/src/index.js"),
+      "@": path.resolve(projectRoot, "templates/react/src"),
+      "@static-js/server": path.resolve(projectRoot, "server/dist/src/index.js"),
     },
   },
   define: {

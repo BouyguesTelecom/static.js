@@ -19,7 +19,7 @@ program
 
       const htmlConfig = path.resolve(__dirname, "./build-html.js");
       const dest = process.cwd();
-      console.log("Executing static.js config...");
+      // Executing static.js config (silent)
 
       execSync("rimraf dist", {
         cwd: dest,

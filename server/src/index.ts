@@ -38,11 +38,11 @@ let isServerStarting = false;
  * @returns Promise<Express> - Configured Express application
  */
 export const createApp = async (): Promise<Express> => {
-    console.log('[Server] Creating Express application...');
+    // Creating Express application
     const app = express();
 
     // Apply middleware in the correct order
-    console.log('[Server] Applying security middleware...');
+    // Applying middleware
     applySecurity(app);
     applyPerformance(app);
     applyRateLimiting(app);
@@ -78,16 +78,16 @@ export const createApp = async (): Promise<Express> => {
  * @returns Promise<Express> - Running Express application
  */
 export const startStaticJSServer = async (): Promise<Express> => {
-    console.log('[Server] Starting StaticJS server...');
+    // Starting StaticJS server
     
     // Prevent duplicate initialization
     if (serverInstance) {
-        console.log('[Server] Server already running, returning existing instance');
+        // Server already running
         return serverInstance;
     }
     
     if (isServerStarting) {
-        console.log('[Server] Server is already starting, waiting...');
+        // Server is already starting, waiting
         // Wait for the other initialization to complete
         while (isServerStarting && !serverInstance) {
             await new Promise(resolve => setTimeout(resolve, 100));

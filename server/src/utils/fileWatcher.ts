@@ -71,11 +71,8 @@ const handleFileChange = (eventType: FileEvent, filePath: string): void => {
         const reloadType = getReloadType(filePath);
         const relativePath = path.relative(process.cwd(), filePath);
         
-        console.log(`[FileWatcher] ${eventType}: ${relativePath} (${reloadType} reload)`);
-        
         // Invalidate runtime cache when source files change
         if (relativePath.includes('src/') || relativePath.includes('src\\')) {
-            console.log('[FileWatcher] Invalidating runtime cache due to source file change');
             await invalidateRuntimeCache();
         }
         
@@ -95,7 +92,7 @@ const handleFileChange = (eventType: FileEvent, filePath: string): void => {
  */
 export const initializeFileWatcher = (): FSWatcher | null => {
     if (!isDevelopment) {
-        console.log('[FileWatcher] Skipping file watcher initialization in production mode');
+        // Skipping file watcher in production mode
         return null;
     }
 
@@ -134,10 +131,10 @@ export const initializeFileWatcher = (): FSWatcher | null => {
             .on('change', (filePath: string) => handleFileChange('change', filePath))
             .on('unlink', (filePath: string) => handleFileChange('unlink', filePath))
             .on('addDir', (dirPath: string) => {
-                console.log(`[FileWatcher] Directory added: ${path.relative(process.cwd(), dirPath)}`);
+                // Directory added (silent)
             })
             .on('unlinkDir', (dirPath: string) => {
-                console.log(`[FileWatcher] Directory removed: ${path.relative(process.cwd(), dirPath)}`);
+                // Directory removed, triggering full reload
                 // Trigger full reload when directories are removed
                 broadcastReload('full', {
                     directory: path.relative(process.cwd(), dirPath),
@@ -149,7 +146,7 @@ export const initializeFileWatcher = (): FSWatcher | null => {
             })
             .on('ready', () => {
                 const watchedPaths = Object.keys(watcher!.getWatched());
-                console.log(`[FileWatcher] File watcher initialized, watching ${watchedPaths.length} directories`);
+                // File watcher initialized
             });
 
         return watcher;
@@ -183,7 +180,7 @@ export const closeFileWatcher = async (): Promise<void> => {
     }
 
     return new Promise<void>((resolve) => {
-        console.log('[FileWatcher] Closing file watcher...');
+        // Closing file watcher
         
         // Clear debounce timer
         if (debounceTimer) {
@@ -193,7 +190,7 @@ export const closeFileWatcher = async (): Promise<void> => {
 
         // Close watcher
         watcher!.close().then(() => {
-            console.log('[FileWatcher] File watcher closed');
+            // File watcher closed
             watcher = null;
             resolve();
         }).catch((error: Error) => {
@@ -208,6 +205,6 @@ export const closeFileWatcher = async (): Promise<void> => {
  * Manually trigger a reload (useful for testing)
  */
 export const triggerReload = (type: ReloadType = 'page', data: Record<string, any> = {}): void => {
-    console.log(`[FileWatcher] Manually triggering ${type} reload`);
+    // Manually triggering reload
     broadcastReload(type, { ...data, manual: true });
 };

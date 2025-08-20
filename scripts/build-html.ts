@@ -90,7 +90,7 @@ async function main() {
         JSfileName: injectJS && fileName,
       });
 
-      console.log(`Successfully wrote: dist/${page.pageName}.html`);
+      // Page written successfully (silent)
     } catch (error) {
       console.error(`Error processing ${page.pageName}:`, error);
     }

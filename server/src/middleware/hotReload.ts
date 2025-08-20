@@ -43,7 +43,7 @@ const loadHotReloadScript = (): string => {
             
             if (fs.existsSync(scriptPath)) {
                 hotReloadClientScript = fs.readFileSync(scriptPath, 'utf8');
-                console.log('[HotReload] Hot reload client script loaded successfully');
+                // Hot reload client script loaded
             } else {
                 throw new Error(`Script not found at ${scriptPath}`);
             }
@@ -140,7 +140,7 @@ export const hotReloadInjectionMiddleware = (req: Request, res: Response, next: 
                 body += hotReloadScript;
             }
             
-            console.log('[HotReload] Script injected into HTML response');
+            // Hot reload script injected
         }
 
         // Call original send method
@@ -155,11 +155,11 @@ export const hotReloadInjectionMiddleware = (req: Request, res: Response, next: 
  */
 export const applyHotReload = (app: Express): void => {
     if (!isDevelopment) {
-        console.log('[HotReload] Skipping hot reload middleware in production mode');
+        // Skipping hot reload middleware in production mode
         return;
     }
 
-    console.log('[HotReload] Applying hot reload middleware');
+    // Applying hot reload middleware
     
     // Apply static file serving middleware first
     app.use(hotReloadStaticMiddleware);
@@ -173,7 +173,7 @@ export const applyHotReload = (app: Express): void => {
  */
 export const clearHotReloadCache = (): void => {
     hotReloadClientScript = null;
-    console.log('[HotReload] Hot reload script cache cleared');
+    // Hot reload script cache cleared
 };
 
 /**

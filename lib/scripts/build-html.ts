@@ -52,43 +52,58 @@ async function main() {
                 );
             }
 
-            if (getStaticProps && getStaticPaths) {
+            // Handle dynamic routes (pages with both getStaticProps and getStaticPaths)
+            if (getStaticPaths) {
                 const {paths} = await getStaticPaths();
-                for (const param of paths) {
-                    const slug = param.params[fileName.replace(/[\[\]]/g, "")];
-                    const {props} = await getStaticProps(param);
-                    const pageName = page.pageName.replace(/\[.*?\]/, slug);
-                    const JSfileName =
-                        injectJS && fileName.replace(/\[(.*?)\]/g, "_$1_");
+                if (paths && Array.isArray(paths)) {
+                    for (const param of paths) {
+                        if (param && param.params) {
+                            const paramKey = fileName.replace(/[\[\]]/g, "");
+                            const slug = param.params[paramKey];
+                            if (slug) {
+                                const {props} = await getStaticProps(param);
+                                const pageName = page.pageName.replace(/\[.*?\]/, slug);
+                                const JSfileName =
+                                    injectJS && fileName.replace(/\[(.*?)\]/g, "_$1_");
 
-                    createPage({
-                        data: props.data,
-                        AppComponent,
-                        PageComponent,
-                        initialDatasId,
-                        rootId,
-                        pageName,
-                        JSfileName: JSfileName,
-                    });
+                                createPage({
+                                    data: props.data,
+                                    AppComponent,
+                                    PageComponent,
+                                    initialDatasId,
+                                    rootId,
+                                    pageName,
+                                    JSfileName: JSfileName,
+                                });
+
+                                console.log(`Successfully wrote: dist/${pageName}.html`);
+                            }
+                        } else {
+                            console.warn(`Skipping invalid path parameter for ${page.pageName}:`, param);
+                        }
+                    }
+                } else {
+                    console.warn(`No valid paths returned from getStaticPaths for ${page.pageName}`);
                 }
+            } else {
+                // Handle static routes (pages without getStaticPaths)
+                if (getStaticProps) {
+                    const {props} = await getStaticProps();
+                    data = props.data;
+                }
+
+                createPage({
+                    data,
+                    AppComponent,
+                    PageComponent,
+                    initialDatasId,
+                    rootId,
+                    pageName: page.pageName,
+                    JSfileName: injectJS && fileName,
+                });
+
+                console.log(`Successfully wrote: dist/${page.pageName}.html`);
             }
-
-            if (getStaticProps) {
-                const {props} = await getStaticProps();
-                data = props.data;
-            }
-
-            createPage({
-                data,
-                AppComponent,
-                PageComponent,
-                initialDatasId,
-                rootId,
-                pageName: page.pageName,
-                JSfileName: injectJS && fileName,
-            });
-
-            console.log(`Successfully wrote: dist/${page.pageName}.html`);
         } catch (error) {
             console.error(`Error processing ${page.pageName}:`, error);
         }

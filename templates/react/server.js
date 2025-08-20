@@ -1,11 +1,11 @@
 /**
  * React template server entry point
- * Uses the root @static-js/server instead of local server implementation
+ * Uses the @bouygues-telecom/staticjs lib package
  */
 
-import { startStaticJSServer } from '@static-js/server';
+import { startStaticJSServer } from '@bouygues-telecom/staticjs';
 
-// Start the server using the root server implementation
+// Start the server using the lib package implementation
 const app = await startStaticJSServer();
 
 export default app;

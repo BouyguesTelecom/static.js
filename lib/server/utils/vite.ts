@@ -33,7 +33,7 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
                     }
                 },
                 appType: 'custom',
-                configFile: '../../server/src/config/vite.config.js'
+                configFile: '../../lib/server/config/vite.config.ts'
             });
             
             // Vite server initialized

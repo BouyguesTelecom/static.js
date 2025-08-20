@@ -141,8 +141,8 @@ export const initializeFileWatcher = (): FSWatcher | null => {
                     event: 'unlinkDir'
                 });
             })
-            .on('error', (error: Error) => {
-                console.error('[FileWatcher] Watcher error:', error);
+            .on('error', (err: unknown) => {
+                console.error('[FileWatcher] Watcher error:', err);
             })
             .on('ready', () => {
                 const watchedPaths = Object.keys(watcher!.getWatched());

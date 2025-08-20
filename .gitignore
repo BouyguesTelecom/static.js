@@ -1,6 +1,6 @@
 test-app
 dist
-build
+_build
 # Logs
 logs
 *.log
@@ -12,7 +12,6 @@ lerna-debug.log*
 templates/react/test
 
 node_modules
-dist
 dist-ssr
 *.local
 

@@ -97,14 +97,25 @@ export const initializeFileWatcher = (): FSWatcher | null => {
     }
 
     try {
-        // Define paths to watch
+        // Define paths to watch based on current working directory
+        const cwd = process.cwd();
+        
         const watchPaths = [
-            'src/**/*',           // All source files
+            'src',                // Source directory
+            'src/**/*',           // All source files in current directory
             'package.json',       // Dependency changes
-            'vite.config.js',     // Vite configuration
             'tsconfig.json',      // TypeScript configuration
             'eslint.config.js'    // ESLint configuration
         ];
+
+        // If we're in the main project directory, also watch template directories
+        if (cwd.includes('static.js') && !cwd.includes('templates/')) {
+            watchPaths.push(
+                'templates/**/src/**/*',     // Template source files
+                'templates/**/package.json', // Template dependencies
+                'templates/**/tsconfig.json'    // Template TypeScript configs
+            );
+        }
 
         // Create watcher with options
         watcher = chokidar.watch(watchPaths, {
@@ -119,6 +130,8 @@ export const initializeFileWatcher = (): FSWatcher | null => {
             ],
             ignoreInitial: true,
             persistent: true,
+            followSymlinks: true,
+            depth: 10, // Allow deep directory watching
             awaitWriteFinish: {
                 stabilityThreshold: 100,
                 pollInterval: 50
@@ -145,7 +158,8 @@ export const initializeFileWatcher = (): FSWatcher | null => {
                 console.error('[FileWatcher] Watcher error:', err);
             })
             .on('ready', () => {
-                const watchedPaths = Object.keys(watcher!.getWatched());
+                const watched = watcher!.getWatched();
+                const watchedPaths = Object.keys(watched);
                 // File watcher initialized
             });
 

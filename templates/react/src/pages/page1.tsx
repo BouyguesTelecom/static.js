@@ -19,7 +19,7 @@ interface DataProps {
 
 const Page1: React.FC<DataProps> = ({data}) => {
     useEffect(() => {
-        console.log("Page1 loaded !");
+        console.log("Page1 loaded!");
     }, []);
 
     return (

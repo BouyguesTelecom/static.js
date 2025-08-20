@@ -24,21 +24,21 @@ const loadHotReloadScript = (): string => {
     if (!hotReloadClientScript) {
         try {
             // Always resolve to the centralized server location
-            // Find the project root by looking for the server directory with the specific structure
+            // Find the project root by looking for the lib/server directory structure
             let projectRoot = process.cwd();
             
             while (projectRoot !== path.dirname(projectRoot)) {
-                const serverDir = path.join(projectRoot, 'server');
+                const libServerDir = path.join(projectRoot, 'lib/server');
                 const packageJson = path.join(projectRoot, 'package.json');
                 
-                // Look for server/src directory structure and package.json to ensure we're at the main project root
-                if (fs.existsSync(serverDir) && fs.existsSync(packageJson)) {
+                // Look for lib/server directory structure and package.json to ensure we're at the main project root
+                if (fs.existsSync(libServerDir) && fs.existsSync(packageJson)) {
                     break;
                 }
                 projectRoot = path.dirname(projectRoot);
             }
             
-            const scriptPath = path.join(projectRoot, 'server/static/hot-reload-client.js');
+            const scriptPath = path.join(projectRoot, 'lib/server/static/hot-reload-client.js');
             
             if (fs.existsSync(scriptPath)) {
                 hotReloadClientScript = fs.readFileSync(scriptPath, 'utf8');

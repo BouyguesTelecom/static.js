@@ -21,10 +21,17 @@ program
     .action(async () => {
         try {
             console.log('🔨 Building static site...');
+            console.log("\n1️⃣ Building assets with Vite...");
 
-            // Run the build process
-            const buildCommand = 'npx vite build';
-            execSync(buildCommand, {
+            const viteBuildCommand = 'npx vite build --config ../../lib/server/config/vite.config.ts';
+            execSync(viteBuildCommand, {
+                stdio: 'inherit',
+                cwd: process.cwd()
+            });
+
+            console.log("\n2️⃣ Building static HTML files from TSX...");
+            const staticHtmlFilesBuildCommand = 'node ../../lib/_build/scripts/build-html.js';
+            execSync(staticHtmlFilesBuildCommand, {
                 stdio: 'inherit',
                 cwd: process.cwd()
             });
@@ -44,7 +51,7 @@ program
             console.log('🚀 Starting development server...');
 
             // Start the development server
-            const devCommand = 'npx vite';
+            const devCommand = 'npx vite --config ../../lib/server/config/vite.config.ts';
             execSync(devCommand, {
                 stdio: 'inherit',
                 cwd: process.cwd()

@@ -1,7 +1,7 @@
 import path from "path";
 import { defineConfig } from "vite";
 import { addHydrationCodePlugin, noJsPlugin } from "./vite.plugin";
-import { loadCacheEntries } from "../helpers/cachePages.js";
+import { loadCacheEntries } from "../../helpers/cachePages.js";
 
 // Fix: Use project root directory instead of config directory
 const projectRoot = path.resolve(__dirname, '../../../');

@@ -12,6 +12,8 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "build:lib": "npm run build --workspace=lib",
+    "build:react": "npm run build --workspace=templates/react",
     "dev": "npm run build --workspace=lib && npm run dev --workspace=templates/react",
     "test": "npm run test --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",

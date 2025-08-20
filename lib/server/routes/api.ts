@@ -5,7 +5,7 @@
 
 import { Request, Response, Express } from "express";
 import { revalidate } from "../scripts/revalidate.js";
-import { getAvailablePagesRuntime } from "../helpers/renderPageRuntime.js";
+import { getAvailablePagesRuntime } from "../../helpers/renderPageRuntime.js";
 import { readdir } from "fs/promises";
 import { extname, join } from "path";
 import { CONFIG, isDevelopment } from "../config/index.js";

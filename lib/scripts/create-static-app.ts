@@ -1,77 +1,46 @@
 #!/usr/bin/env node
 
-/**
- * Create StaticJS App CLI
- * Scaffolds a new StaticJS application
- */
+import {program} from "commander";
+import {execSync} from "node:child_process";
+import {dirname} from "node:path";
+import {fileURLToPath} from "node:url";
+import path from "path";
 
-import {Command} from 'commander';
-import path from 'path';
-import fs from 'fs';
-
-const program = new Command();
-
+const __dirname = dirname(fileURLToPath(import.meta.url));
 program
-    .name('create-staticjs-app')
-    .description('Create a new StaticJS application')
-    .version('1.0.0')
-    .argument('<project-name>', 'Name of the project to create')
-    .action(async (projectName: string) => {
+    .command("build")
+    .description("Build with static.js configuration")
+    .action(() => {
         try {
-            console.log(`🚀 Creating StaticJS app: ${projectName}`);
-
-            const projectPath = path.resolve(process.cwd(), projectName);
-
-            // Check if directory already exists
-            if (fs.existsSync(projectPath)) {
-                console.error(`❌ Directory ${projectName} already exists!`);
-                process.exit(1);
-            }
-
-            // Create project directory
-            fs.mkdirSync(projectPath, {recursive: true});
-
-            // Copy template files (this would normally copy from a template)
-            console.log('📁 Setting up project structure...');
-
-            // Create basic package.json
-            const packageJson = {
-                name: projectName,
-                version: '1.0.0',
-                type: 'module',
-                scripts: {
-                    dev: 'NODE_ENV=development tsx server.js',
-                    build: 'bt-staticjs build',
-                    start: 'npm run build && NODE_ENV=production tsx server.js'
-                },
-                dependencies: {
-                    '@bouygues-telecom/staticjs': '*',
-                    react: '^19.1.0',
-                    'react-dom': '^19.1.0'
-                },
-                devDependencies: {
-                    '@types/react': '^19.1.5',
-                    '@types/react-dom': '^19.1.5',
-                    typescript: '^5',
-                    tsx: '^4.19.4'
-                }
-            };
-
-            fs.writeFileSync(
-                path.join(projectPath, 'package.json'),
-                JSON.stringify(packageJson, null, 2)
+            const cachePagesPath = path.resolve(
+                __dirname,
+                "../helpers/cachePages.js"
             );
 
-            console.log('✅ StaticJS app created successfully!');
-            console.log(`\nNext steps:`);
-            console.log(`  cd ${projectName}`);
-            console.log(`  npm install`);
-            console.log(`  npm run dev`);
+            const htmlConfig = path.resolve(__dirname, "./build-html.js");
+            const dest = process.cwd();
+            console.log("Executing static.js config...");
 
+            execSync("rimraf dist", {
+                cwd: dest,
+                stdio: "inherit",
+            });
+
+            execSync(`rimraf cache && node ${cachePagesPath}`, {
+                cwd: dest,
+                stdio: "inherit",
+            });
+
+            execSync(`vite build && tsx ${htmlConfig}`, {
+                cwd: dest,
+                stdio: "inherit",
+            });
+
+            console.log("Build completed successfully");
         } catch (error) {
-            console.error('❌ Failed to create app:', error);
+            console.error("Build failed:", error);
             process.exit(1);
         }
     });
 
-program.parse();
+program.parse(process.argv);

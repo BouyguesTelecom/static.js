@@ -132,7 +132,7 @@ export const startStaticJSServer = async (): Promise<Express> => {
 };
 
 // Export additional utilities for external use
-export {CONFIG, isDevelopment} from "./config/index.js";
+export {isDevelopment} from "./config/index.js";
 export type {ServerConfig} from "./config/index.js";
 export {initializeViteServer} from "./utils/vite.js";
 export {setupProcessHandlers, startServer} from "./utils/startup.js";

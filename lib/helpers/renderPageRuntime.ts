@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import path from "path";
 import { createPage } from "./createPage.js";
 import { readPages } from "./readPages.js";
+import { CONFIG } from "../server/config/index.js";
 
 const rootDir = path.resolve(process.cwd(), "./src");
 
@@ -26,7 +27,7 @@ export async function renderPageRuntime(requestPath: string, params?: { [key: st
   try {
     // Load excluded files for "no scripts" functionality
     const excludedJSFiles = await loadJson(
-      path.join(process.cwd(), "./cache/excludedFiles.json")
+      path.join(process.cwd(), `./${CONFIG.BUILD_DIR}/cache/excludedFiles.json`)
     );
 
     // Get available pages using readPages helper

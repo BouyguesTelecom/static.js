@@ -7,6 +7,8 @@
 
 import {Command} from 'commander';
 import {execSync} from 'child_process';
+import * as path from "node:path";
+import {CONFIG} from "../server/config/index.js";
 
 const program = new Command();
 
@@ -21,24 +23,31 @@ program
     .action(async () => {
         try {
             console.log('🔨 Building static site...');
-            console.log("\n1️⃣ Building assets with Vite...");
 
-            const viteBuildCommand = 'npx vite build --config ../../lib/_build/server/config/vite.config.js';
-            execSync(viteBuildCommand, {
-                stdio: 'inherit',
-                cwd: process.cwd()
-            });
-
-            console.log("\n2️⃣ Building static HTML files from TSX...");
+            console.log("\n1️⃣ Building static HTML files from TSX...");
             const staticHtmlFilesBuildCommand = 'npx tsx ../../lib/scripts/build-html.ts';
             execSync(staticHtmlFilesBuildCommand, {
                 stdio: 'inherit',
                 cwd: process.cwd()
             });
 
-            console.log('✅ Build completed successfully!');
+            console.log("\n2️⃣ Building assets with Vite...");
+            const viteBuildCommand = 'npx vite build --config ../../lib/_build/server/config/vite.config.js';
+            execSync(viteBuildCommand, {
+                stdio: 'inherit',
+                cwd: process.cwd()
+            });
+
+            console.log("\n3️⃣ Cleanup...");
+            const cleanupCommand = `rm -rf ${path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache")}`;
+            execSync(cleanupCommand, {
+                stdio: 'inherit',
+                cwd: process.cwd()
+            });
+
+            console.log('\n✅ Build completed successfully!');
         } catch (error) {
-            console.error('❌ Build failed:', error);
+            console.error('\n❌ Build failed:', error);
             process.exit(1);
         }
     });

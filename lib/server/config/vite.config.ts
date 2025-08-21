@@ -1,11 +1,11 @@
 import path from "path";
 import {defineConfig, loadEnv} from "vite";
-import {addHydrationCodePlugin, noJsPlugin} from "./vite.plugin";
+import {addHydrationCodePlugin} from "./vite.plugin";
 import {loadCacheEntries} from "../../helpers/cachePages.js";
 import {CONFIG} from "./index";
 
 // Load cache entries using the refactored helper function
-const entries = loadCacheEntries(CONFIG.PROJECT_ROOT, true);
+const entries = loadCacheEntries(CONFIG.PROJECT_ROOT);
 
 export default defineConfig(({ mode }) => {
     // Load environment variables from .env files
@@ -20,6 +20,7 @@ export default defineConfig(({ mode }) => {
         },
         build: {
             outDir: path.resolve(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR),
+            emptyOutDir: false,
             rollupOptions: {
                 input: entries,
                 output: {
@@ -28,6 +29,6 @@ export default defineConfig(({ mode }) => {
                 },
             },
         },
-        plugins: [noJsPlugin(entries), addHydrationCodePlugin(entries)],
+        plugins: [addHydrationCodePlugin(entries)],
     };
 });

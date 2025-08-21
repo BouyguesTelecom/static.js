@@ -1,6 +1,40 @@
 import fs from "fs";
 import path from "path";
 import {readPages} from "./readPages.js";
+import {CONFIG} from "../server/config/index.js";
+
+const generateExcludedFiles = (entries: { [key: string]: string }) => {
+    const excludedFiles: string[] = [];
+
+    Object.entries(entries).forEach(([name, path]) => {
+        const content = fs.readFileSync(path, "utf8");
+        const firstLine = content.split("\n")[0];
+
+        if (firstLine.includes("no scripts")) {
+            delete entries[name];
+            excludedFiles.push(name);
+            // File excluded from build due to "no scripts" directive
+        }
+    });
+
+    try {
+        const cacheDir = path.resolve(process.cwd(), CONFIG.BUILD_DIR, "cache");
+        const excludedFilePath = path.resolve(cacheDir, "excludedFiles.json");
+
+        if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir, {recursive: true});
+        }
+
+        fs.writeFileSync(
+            excludedFilePath,
+            JSON.stringify(excludedFiles, null, 2),
+            "utf8"
+        );
+    } catch (error) {
+        console.error("Error generating excluded files:", error);
+        throw error; // Re-throw to handle it in the caller
+    }
+};
 
 /**
  * Generate cache entries for a given template directory
@@ -8,9 +42,9 @@ import {readPages} from "./readPages.js";
  * @param verbose
  * @returns The generated cache entries object
  */
-export const generateCacheEntries = (projectDir: string, verbose: boolean = false) => {
+const generateCacheEntries = (projectDir: string, verbose: boolean = false) => {
     const pagesDir = path.resolve(projectDir, "src/pages");
-    const cacheDir = path.resolve(projectDir, "cache");
+    const cacheDir = path.resolve(projectDir, CONFIG.BUILD_DIR, "cache");
     const cacheFilePath = path.resolve(cacheDir, "pagesCache.json");
 
     // Generating pages cache (silent unless error)
@@ -36,6 +70,9 @@ export const generateCacheEntries = (projectDir: string, verbose: boolean = fals
 
     // Write cache file
     fs.writeFileSync(cacheFilePath, JSON.stringify(entries, null, 2), "utf8");
+
+    generateExcludedFiles(entries);
+
     if (verbose) {
         console.log(`   Generated cache file: ${cacheFilePath}`);
         console.log(`   Found ${Object.keys(entries).length} page(s)\n`);
@@ -51,7 +88,7 @@ export const generateCacheEntries = (projectDir: string, verbose: boolean = fals
  * @returns The loaded or generated cache entries object
  */
 export const loadCacheEntries = (projectDir: string, verbose: boolean = false) => {
-    const cacheFilePath = path.resolve(projectDir, "cache/pagesCache.json");
+    const cacheFilePath = path.resolve(projectDir, CONFIG.BUILD_DIR, "cache/pagesCache.json");
 
     try {
         if (!fs.existsSync(cacheFilePath)) {
@@ -76,24 +113,20 @@ export const loadCacheEntries = (projectDir: string, verbose: boolean = false) =
         return entries;
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        if (verbose) {
-            console.error('\n❌ StaticJS Cache Error:');
-            console.error(`   ${errorMessage}`);
-            console.log('\n📝 Attempting to generate cache automatically...');
-        }
+        console.error('\n❌ StaticJS Cache Error:');
+        console.error(`   ${errorMessage}`);
+        console.log('\n📝 Attempting to generate cache automatically...');
 
         try {
             return generateCacheEntries(projectDir, verbose);
         } catch (generateError) {
             const generateErrorMessage = generateError instanceof Error ? generateError.message : String(generateError);
-            if (verbose) {
-                console.error('\n❌ Failed to generate cache automatically:');
-                console.error(`   ${generateErrorMessage}`);
-                console.error('\n💡 To fix this issue:');
-                console.error('   1. Run: npm run build');
-                console.error('   2. Or run: npm run dev (will auto-build if needed)');
-                console.error('   3. Or run: npm run validate-setup\n');
-            }
+            console.error('\n❌ Failed to generate cache automatically:');
+            console.error(`   ${generateErrorMessage}`);
+            console.error('\n💡 To fix this issue:');
+            console.error('   1. Run: npm run build');
+            console.error('   2. Or run: npm run dev (will auto-build if needed)');
+            console.error('   3. Or run: npm run validate-setup\n');
 
             // Return empty object to prevent Vite from crashing
             return {};
@@ -133,7 +166,7 @@ export const runCli = (templateDir: string = ".", specificFiles?: string[]) => {
         const entries = processCliArgs(args, pagesDir);
 
         // Use generateCacheEntries but with custom entries
-        const cacheDir = path.resolve(process.cwd(), templateDir, "cache");
+        const cacheDir = path.resolve(process.cwd(), templateDir, CONFIG.BUILD_DIR, "cache");
         const cacheFilePath = path.resolve(cacheDir, "pagesCache.json");
 
         if (!fs.existsSync(cacheDir)) {

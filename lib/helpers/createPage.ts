@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import {CONFIG} from "../server";
+import {CONFIG} from "../server/config/index.js";
 
 interface IcreatePage {
     data: any,
@@ -47,6 +47,14 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     if (returnHtml) {
         return htmlContent;
     } else {
+        // If page name contains a slash, create directories
+        const pageNameParts = pageName.split("/");
+        if (pageNameParts.length > 1) {
+            const dirPath = path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, ...pageNameParts.slice(0, -1));
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath, {recursive: true});
+            }
+        }
         fs.writeFileSync(path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, `${pageName}.html`), htmlContent);
     }
 };

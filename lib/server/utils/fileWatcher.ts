@@ -122,7 +122,7 @@ export const initializeFileWatcher = (): FSWatcher | null => {
             ignored: [
                 '**/node_modules/**',
                 '**/_build/**',
-                '**/cache/**',
+                '**/node_modules/**',
                 '**/.git/**',
                 '**/coverage/**',
                 '**/*.log',

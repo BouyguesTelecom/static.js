@@ -26,7 +26,7 @@ program
                 stdio: "inherit",
             });
 
-            execSync(`rimraf cache && node ${cachePagesPath}`, {
+            execSync(`rimraf _build/cache && node ${cachePagesPath}`, {
                 cwd: dest,
                 stdio: "inherit",
             });

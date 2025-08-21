@@ -5,7 +5,7 @@
 
 import express, { Request, Response, NextFunction, Express } from "express";
 import { extname } from "path";
-import { CONFIG, isDevelopment } from "../index";
+import { CONFIG, isDevelopment } from "../config/index.js";
 
 /**
  * Apply static file serving middleware to Express app

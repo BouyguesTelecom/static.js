@@ -1,8 +1,9 @@
-import {CONFIG} from "../server";
 import fs from "fs/promises";
 import crypto from "node:crypto";
 import path from "path";
 import {createPage} from "../helpers/createPage.js";
+import {CONFIG} from "../server/config/index.js";
+import {loadCacheEntries} from "../helpers/cachePages";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -12,11 +13,12 @@ async function loadJson(filePath: string) {
 }
 
 async function main() {
+    loadCacheEntries(CONFIG.PROJECT_ROOT);
     const excludedJSFiles = await loadJson(
-        path.join(CONFIG.PROJECT_ROOT, "cache/excludedFiles.json")
+        path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache/excludedFiles.json")
     );
     const files = await loadJson(
-        path.join(CONFIG.PROJECT_ROOT, "cache/pagesCache.json")
+        path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache/pagesCache.json")
     );
 
     const processPage = async (page: { path: string; pageName: string }) => {
@@ -73,7 +75,7 @@ async function main() {
                                     JSfileName: JSfileName,
                                 });
 
-                                console.log(`Successfully wrote: _build/${pageName}.html`);
+                                console.log(`✓ ${pageName}.html`);
                             }
                         } else {
                             console.warn(`Skipping invalid path parameter for ${page.pageName}:`, param);
@@ -99,7 +101,7 @@ async function main() {
                     JSfileName: injectJS && fileName,
                 });
 
-                console.log(`Successfully wrote: _build/${page.pageName}.html`);
+                console.log(`✓ ${page.pageName}.html`);
             }
         } catch (error) {
             console.error(`Error processing ${page.pageName}:`, error);

@@ -7,6 +7,7 @@ import { Request, Response, NextFunction, Express } from "express";
 import { ViteDevServer } from "vite";
 import { renderPageRuntime } from "../../helpers/renderPageRuntime.js";
 import { isDevelopment } from "../index";
+import { CONFIG } from "../config/index.js";
 import fs from "fs";
 
 interface CachedPage {
@@ -127,8 +128,8 @@ export const runtimeRenderingMiddleware = async (req: Request, res: Response, ne
  */
 export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevServer): void => {
     // Register specific routes for each page's JavaScript file
-    const pagesCache: PagesCache = JSON.parse(fs.readFileSync('./cache/pagesCache.json', 'utf8'));
-    const excludedFiles: string[] = JSON.parse(fs.readFileSync('./cache/excludedFiles.json', 'utf8'));
+    const pagesCache: PagesCache = JSON.parse(fs.readFileSync(`./${CONFIG.BUILD_DIR}/cache/pagesCache.json`, 'utf8'));
+    const excludedFiles: string[] = JSON.parse(fs.readFileSync(`./${CONFIG.BUILD_DIR}/cache/excludedFiles.json`, 'utf8'));
 
     // Register a route for each page's JS file (skip dynamic routes)
     Object.keys(pagesCache).forEach(pageName => {

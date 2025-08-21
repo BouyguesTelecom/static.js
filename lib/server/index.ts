@@ -3,11 +3,11 @@
  * Modular Express.js server with enhanced security, performance, and developer experience
  */
 
-import express, { Express } from "express";
-import { Server } from "http";
+import express, {Express} from "express";
+import {Server} from "http";
 
 // Import configuration
-import {CONFIG, isDevelopment} from "./config/index.js";
+import {CONFIG, isDevelopment} from "./config";
 
 // Import middleware modules
 import {applySecurity} from "./middleware/security.js";
@@ -79,13 +79,13 @@ export const createApp = async (): Promise<Express> => {
  */
 export const startStaticJSServer = async (): Promise<Express> => {
     // Starting StaticJS server
-    
+
     // Prevent duplicate initialization
     if (serverInstance) {
         // Server already running
         return serverInstance;
     }
-    
+
     if (isServerStarting) {
         // Server is already starting, waiting
         // Wait for the other initialization to complete
@@ -94,9 +94,9 @@ export const startStaticJSServer = async (): Promise<Express> => {
         }
         return serverInstance!;
     }
-    
+
     isServerStarting = true;
-    
+
     try {
         // Create Express app
         const app = await createApp();
@@ -132,9 +132,10 @@ export const startStaticJSServer = async (): Promise<Express> => {
 };
 
 // Export additional utilities for external use
-export { CONFIG, isDevelopment } from "./config/index.js";
-export { initializeViteServer } from "./utils/vite.js";
-export { setupProcessHandlers, startServer } from "./utils/startup.js";
+export {CONFIG, isDevelopment} from "./config/index.js";
+export type {ServerConfig} from "./config/index.js";
+export {initializeViteServer} from "./utils/vite.js";
+export {setupProcessHandlers, startServer} from "./utils/startup.js";
 
 // Only start the server when this module is run directly (not when imported)
 let app: Express | undefined;

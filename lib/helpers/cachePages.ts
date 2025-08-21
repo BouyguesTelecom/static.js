@@ -4,18 +4,13 @@ import {readPages} from "./readPages.js";
 
 /**
  * Generate cache entries for a given template directory
- * @param templateDir - The template directory path (e.g., "templates/react")
- * @param options - Optional configuration
+ * @param projectDir - The template directory path (e.g., "templates/react")
+ * @param verbose
  * @returns The generated cache entries object
  */
-export const generateCacheEntries = (templateDir: string, options: {
-    verbose?: boolean;
-    rootDir?: string;
-} = {}) => {
-    const {verbose = true, rootDir = process.cwd()} = options;
-
-    const pagesDir = path.resolve(rootDir, templateDir, "src/pages");
-    const cacheDir = path.resolve(rootDir, templateDir, "cache");
+export const generateCacheEntries = (projectDir: string, verbose: boolean = false) => {
+    const pagesDir = path.resolve(projectDir, "src/pages");
+    const cacheDir = path.resolve(projectDir, "cache");
     const cacheFilePath = path.resolve(cacheDir, "pagesCache.json");
 
     // Generating pages cache (silent unless error)
@@ -51,23 +46,19 @@ export const generateCacheEntries = (templateDir: string, options: {
 
 /**
  * Load cache entries with error handling and auto-generation
- * @param templateDir - The template directory path (e.g., "templates/react")
- * @param options - Optional configuration
+ * @param projectDir - The template directory path (e.g., "templates/react")
+ * @param verbose
  * @returns The loaded or generated cache entries object
  */
-export const loadCacheEntries = (templateDir: string, options: {
-    verbose?: boolean;
-    rootDir?: string;
-} = {}) => {
-    const {verbose = true, rootDir = process.cwd()} = options;
-    const cacheFilePath = path.resolve(rootDir, templateDir, "cache/pagesCache.json");
+export const loadCacheEntries = (projectDir: string, verbose: boolean = false) => {
+    const cacheFilePath = path.resolve(projectDir, "cache/pagesCache.json");
 
     try {
         if (!fs.existsSync(cacheFilePath)) {
             if (verbose) {
                 console.log('\n📝 Cache file not found, generating automatically...');
             }
-            return generateCacheEntries(templateDir, options);
+            return generateCacheEntries(projectDir, verbose);
         }
 
         const entries = JSON.parse(fs.readFileSync(cacheFilePath, 'utf8'));
@@ -76,7 +67,7 @@ export const loadCacheEntries = (templateDir: string, options: {
             if (verbose) {
                 console.log('\n📝 Invalid cache file format, regenerating...');
             }
-            return generateCacheEntries(templateDir, options);
+            return generateCacheEntries(projectDir, verbose);
         }
 
         if (verbose) {
@@ -92,7 +83,7 @@ export const loadCacheEntries = (templateDir: string, options: {
         }
 
         try {
-            return generateCacheEntries(templateDir, options);
+            return generateCacheEntries(projectDir, verbose);
         } catch (generateError) {
             const generateErrorMessage = generateError instanceof Error ? generateError.message : String(generateError);
             if (verbose) {
@@ -154,7 +145,7 @@ export const runCli = (templateDir: string = ".", specificFiles?: string[]) => {
         return entries;
     } else {
         // Use the modern API for full directory scanning
-        return generateCacheEntries(templateDir, {verbose: true});
+        return generateCacheEntries(templateDir, true);
     }
 };
 

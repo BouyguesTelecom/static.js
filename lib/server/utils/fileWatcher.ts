@@ -121,7 +121,7 @@ export const initializeFileWatcher = (): FSWatcher | null => {
         watcher = chokidar.watch(watchPaths, {
             ignored: [
                 '**/node_modules/**',
-                '**/dist/**',
+                '**/_build/**',
                 '**/cache/**',
                 '**/.git/**',
                 '**/coverage/**',

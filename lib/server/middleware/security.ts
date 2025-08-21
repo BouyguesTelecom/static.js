@@ -6,7 +6,7 @@
 import helmet from "helmet";
 import cors from "cors";
 import { Express } from "express";
-import { isDevelopment } from "../config/index.js";
+import { isDevelopment } from "../index";
 
 /**
  * Security headers middleware using helmet

@@ -10,9 +10,10 @@
     "resolveJsonModule": true,
     "importHelpers": true,
     "outDir": "./_build",
+    "declaration": true,
     "emitDeclarationOnly": false,
     "baseUrl": "."
   },
-  "include": ["config", "helpers", "scripts", "server"],
+  "include": ["config", "helpers", "scripts", "server", "index.ts"],
   "exclude": ["node_modules", "_build", "server/node_modules"]
 }

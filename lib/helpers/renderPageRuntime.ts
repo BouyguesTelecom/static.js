@@ -159,7 +159,7 @@ async function processPageRuntime(
     }) as string;
   } catch (error) {
     // Fallback to server's createPage
-    htmlContent = createPage({
+    htmlContent = await createPage({
       data,
       AppComponent,
       PageComponent,

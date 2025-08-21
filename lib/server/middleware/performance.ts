@@ -5,7 +5,7 @@
 
 import compression from "compression";
 import { Request, Response, NextFunction, Express } from "express";
-import { CONFIG } from "../config/index.js";
+import { CONFIG } from "../index";
 
 /**
  * Request timeout middleware

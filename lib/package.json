@@ -6,7 +6,7 @@
   "exports": {
     ".": "./_build/server/index.js",
     "./server": "./_build/server/index.js",
-    "./config": "./_build/config/index.js",
+    "./config": "./_build/server/config/index.js",
     "./helpers": "./_build/helpers/cachePages.js"
   },
   "files": [
@@ -21,7 +21,7 @@
     "generate-test-multiapps": "./_build/scripts/generate-test-multiapps.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf _build && tsc",
     "dev": "npm run build && cd ../templates/react && npm run dev"
   },
   "dependencies": {

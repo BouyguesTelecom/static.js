@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx server.js",
     "build": "node ../../lib/_build/scripts/cli.js build",
-    "start": "npx http-server -c-1 -p 4321 -a localhost dist"
+    "start": "npx http-server -c-1 -p 4321 -a localhost _build"
   },
   "dependencies": {
     "@bouygues-telecom/staticjs": "*",

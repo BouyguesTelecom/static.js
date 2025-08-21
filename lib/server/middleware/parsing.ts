@@ -4,7 +4,7 @@
  */
 
 import express, { Express } from "express";
-import { CONFIG } from "../config/index.js";
+import { CONFIG } from "../index";
 
 /**
  * Apply parsing middleware to Express app

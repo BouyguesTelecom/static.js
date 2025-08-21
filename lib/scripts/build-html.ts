@@ -1,11 +1,10 @@
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
+import {CONFIG} from "../server";
 import fs from "fs/promises";
 import crypto from "node:crypto";
 import path from "path";
 import {createPage} from "../helpers/createPage.js";
 
-const rootDir = path.resolve(process.cwd(), "./src");
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
 async function loadJson(filePath: string) {
     const data = await fs.readFile(filePath, "utf-8");
@@ -14,10 +13,10 @@ async function loadJson(filePath: string) {
 
 async function main() {
     const excludedJSFiles = await loadJson(
-        path.join(path.resolve(process.cwd()), "./cache/excludedFiles.json")
+        path.join(CONFIG.PROJECT_ROOT, "cache/excludedFiles.json")
     );
     const files = await loadJson(
-        path.join(path.resolve(process.cwd()), "./cache/pagesCache.json")
+        path.join(CONFIG.PROJECT_ROOT, "cache/pagesCache.json")
     );
 
     const processPage = async (page: { path: string; pageName: string }) => {
@@ -25,7 +24,7 @@ async function main() {
             let data;
             const absolutePath = page.path;
             const pageModule = await import(absolutePath);
-            const appModule = await import(`${rootDir}/app.tsx`);
+            const appModule = await import(`${CONFIG.PROJECT_ROOT}/src/app.tsx`);
             const fileName = path.basename(page.path, path.extname(page.path));
 
             const AppComponent = appModule.App;
@@ -47,9 +46,7 @@ async function main() {
                 .slice(0, 10);
 
             if (!PageComponent) {
-                throw new Error(
-                    `Failed to import PageComponent from ${page.pageName}.tsx`
-                );
+                throw new Error(`Failed to import PageComponent from ${page.pageName}.tsx`);
             }
 
             // Handle dynamic routes (pages with both getStaticProps and getStaticPaths)
@@ -76,7 +73,7 @@ async function main() {
                                     JSfileName: JSfileName,
                                 });
 
-                                console.log(`Successfully wrote: dist/${pageName}.html`);
+                                console.log(`Successfully wrote: _build/${pageName}.html`);
                             }
                         } else {
                             console.warn(`Skipping invalid path parameter for ${page.pageName}:`, param);
@@ -102,7 +99,7 @@ async function main() {
                     JSfileName: injectJS && fileName,
                 });
 
-                console.log(`Successfully wrote: dist/${page.pageName}.html`);
+                console.log(`Successfully wrote: _build/${page.pageName}.html`);
             }
         } catch (error) {
             console.error(`Error processing ${page.pageName}:`, error);

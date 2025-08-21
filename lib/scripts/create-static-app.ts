@@ -21,7 +21,7 @@ program
             const dest = process.cwd();
             console.log("Executing static.js config...");
 
-            execSync("rimraf dist", {
+            execSync("rimraf _build", {
                 cwd: dest,
                 stdio: "inherit",
             });

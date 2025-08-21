@@ -5,7 +5,7 @@
 
 import rateLimit from "express-rate-limit";
 import { Express } from "express";
-import { CONFIG } from "../config/index.js";
+import { CONFIG } from "../index";
 
 /**
  * General rate limiting for all endpoints

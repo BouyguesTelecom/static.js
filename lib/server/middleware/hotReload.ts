@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Request, Response, NextFunction, Express } from 'express';
-import { isDevelopment } from '../config/index.js';
+import { isDevelopment } from '../index';
 
 // Cache for rendered pages and module cache invalidation
 let hotReloadClientScript: string | null = null;

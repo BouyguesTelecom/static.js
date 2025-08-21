@@ -23,7 +23,7 @@ program
             console.log('🔨 Building static site...');
             console.log("\n1️⃣ Building assets with Vite...");
 
-            const viteBuildCommand = 'npx vite build --config ../../lib/server/config/vite.config.ts';
+            const viteBuildCommand = 'npx vite build --config ../../lib/_build/server/config/vite.config.js';
             execSync(viteBuildCommand, {
                 stdio: 'inherit',
                 cwd: process.cwd()

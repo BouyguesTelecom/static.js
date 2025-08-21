@@ -9,8 +9,8 @@ const entries = loadCacheEntries(CONFIG.PROJECT_ROOT, true);
 
 export default defineConfig(({ mode }) => {
     // Load environment variables from .env files
-    const env = loadEnv(mode, CONFIG.PROJECT_ROOT, '');
-    console.log(`[Vite] Loaded environment variables for mode: ${mode}`, env);
+    // const env = loadEnv(mode, CONFIG.PROJECT_ROOT, '');
+    // console.log(`[Vite] Loaded environment variables for mode: ${mode}`, env);
 
     return {
         resolve: {

@@ -28,7 +28,6 @@ import {initializeViteServer} from "./utils/vite.js";
 import {setupProcessHandlers, startServer} from "./utils/startup.js";
 import {initializeWebSocketServer} from "./utils/websocket.js";
 import {initializeFileWatcher} from "./utils/fileWatcher.js";
-import {getConfigAsync} from "../helpers/getConfig";
 
 // Singleton pattern to prevent duplicate server initialization
 let serverInstance: Express | null = null;
@@ -99,10 +98,6 @@ export const startStaticJSServer = async (): Promise<Express> => {
     isServerStarting = true;
 
     try {
-        console.log("");
-        console.log(await getConfigAsync());
-        console.log("");
-
         // Create Express app
         const app = await createApp();
         serverInstance = app;

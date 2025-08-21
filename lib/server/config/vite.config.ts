@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
             },
         },
         build: {
-            outDir: path.resolve(CONFIG.PROJECT_ROOT, CONFIG.STATIC_DIR),
+            outDir: path.resolve(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR),
             rollupOptions: {
                 input: entries,
                 output: {

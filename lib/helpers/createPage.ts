@@ -47,6 +47,6 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     if (returnHtml) {
         return htmlContent;
     } else {
-        fs.writeFileSync(path.join(CONFIG.PROJECT_ROOT, CONFIG.STATIC_DIR, `${pageName}.html`), htmlContent);
+        fs.writeFileSync(path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, `${pageName}.html`), htmlContent);
     }
 };

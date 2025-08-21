@@ -8,7 +8,7 @@ export interface ServerConfig {
     PORT: number;
     NODE_ENV: string;
     PROJECT_ROOT: string;
-    STATIC_DIR: string;
+    BUILD_DIR: string;
     REQUEST_TIMEOUT: number;
     BODY_SIZE_LIMIT: string;
     RATE_LIMIT_WINDOW: number;
@@ -26,7 +26,7 @@ export const CONFIG: ServerConfig = {
     PORT: Number(process.env.PORT) || 3456,
     NODE_ENV: process.env.NODE_ENV || 'development',
     PROJECT_ROOT: path.resolve(process.cwd()),
-    STATIC_DIR: '_build',
+    BUILD_DIR: '_build',
     REQUEST_TIMEOUT: 30000, // 30 seconds
     BODY_SIZE_LIMIT: '10mb',
     RATE_LIMIT_WINDOW: 15 * 60 * 1000, // 15 minutes

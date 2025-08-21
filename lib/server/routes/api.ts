@@ -119,7 +119,7 @@ async function getAvailablePages(): Promise<PageInfo[]> {
 
     try {
         const scanDirectory = async (dir: string, basePath: string = ''): Promise<void> => {
-            const items = await readdir(join(CONFIG.STATIC_DIR, dir), {withFileTypes: true});
+            const items = await readdir(join(CONFIG.BUILD_DIR, dir), {withFileTypes: true});
 
             for (const item of items) {
                 const itemPath = join(dir, item.name);

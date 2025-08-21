@@ -23,7 +23,7 @@ export const applyStatic = (app: Express): void => {
         }
         
         // Use express.static for non-JS files or in production
-        express.static(CONFIG.STATIC_DIR, {
+        express.static(CONFIG.BUILD_DIR, {
             maxAge: CONFIG.CACHE_MAX_AGE * 1000, // Convert to milliseconds
             etag: true,
             lastModified: true,

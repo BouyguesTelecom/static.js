@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+import path from "path";
+import { findClosestLayout } from "../../helpers/layoutDiscovery.js";
 
 const getDefaultExportFunctionName = (code: string) => {
     const defaultExportRegex = /export\s+default\s+function\s+(\w+)/;
@@ -9,6 +11,7 @@ const getDefaultExportFunctionName = (code: string) => {
     if (varMatch && varMatch[1]) return varMatch[1];
     return null;
 };
+
 
 export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
     return {
@@ -33,9 +36,22 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
                 return null;
             }
 
-            // Component found, generating hydration code
+            // Find the closest layout for this page
+            const rootDir = path.resolve(process.cwd(), "src");
+            const layoutPath = findClosestLayout(id, rootDir);
+            
+            if (!layoutPath) {
+                console.warn(`No layout found for page ${id}, falling back to default App`);
+                return null;
+            }
+
+            // Get relative path for layout import
+            const layoutRelativePath = path.relative(path.dirname(id), layoutPath).replace(/\\/g, '/');
+            const layoutImportPath = layoutRelativePath.startsWith('.') ? layoutRelativePath : `./${layoutRelativePath}`;
+
+            // Component found, generating hydration code with discovered layout
             const importReactDOM = `import ReactDOM from 'react-dom/client';`;
-            const importApp = `import { App } from "@/app";`;
+            const importLayout = `import { Layout } from "${layoutImportPath.replace('.tsx', '')}";`;
 
             const rootId = crypto
                 .createHash("sha256")
@@ -53,14 +69,19 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
 export const rootId = 'app-${rootId}';
 export const initialDatasId = 'initial-data-${initialDatasId}';
 
+// Create App component with discovered layout
+const AppWithLayout = ({ Component, props }) => {
+  return React.createElement(Layout, { children: React.createElement(Component, props) });
+};
+
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     const initialDataScript = document.getElementById(initialDatasId);
     const initialData = initialDataScript ? JSON.parse(initialDataScript.textContent || '{}') : {title: ''};
-    ReactDOM.hydrateRoot(document.getElementById(rootId), App({Component:${componentName}, props: {data: initialData}}));
+    ReactDOM.hydrateRoot(document.getElementById(rootId), AppWithLayout({Component:${componentName}, props: {data: initialData}}));
   });
 }`;
-            const transformedCode = importReactDOM + "\n" + importApp + "\n" + code + "\n" + additionalCode;
+            const transformedCode = importReactDOM + "\n" + importLayout + "\n" + code + "\n" + additionalCode;
 
             return {
                 code: transformedCode,

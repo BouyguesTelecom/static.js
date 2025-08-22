@@ -7,6 +7,7 @@ import React from "react";
 import { createPage } from "./createPage.js";
 import { readPages } from "./readPages.js";
 import { CONFIG } from "../server/config/index.js";
+import { findClosestLayout } from "./layoutDiscovery.js";
 
 const rootDir = path.resolve(process.cwd(), "./src");
 
@@ -101,19 +102,29 @@ async function processPageRuntime(
   
   try {
     const pageModule = await import(`${absolutePath}${cacheBuster}`);
-    const layoutModule = await import(`${rootDir}/layout.tsx${cacheBuster}`);
+    
+    // Discover the closest layout for this page
+    const layoutPath = findClosestLayout(absolutePath, rootDir);
+    if (!layoutPath) {
+      throw new Error(`No layout found for page ${page.pageName}`);
+    }
+    
+    const layoutModule = await import(`${layoutPath}${cacheBuster}`);
     const appModule = await import(`${rootDir}/app.tsx${cacheBuster}`);
     const fileName = path.basename(page.path, path.extname(page.path));
 
-    // Create a dynamic App component that uses the fresh layout
+    // Create a dynamic App component that uses the discovered layout
     const LayoutComponent = layoutModule.Layout;
-    const OriginalAppComponent = appModule.App;
     
-    // Create a wrapper App component that uses the fresh layout
+    if (!LayoutComponent) {
+      throw new Error(`Layout component not found in ${layoutPath}. Make sure it exports 'Layout'.`);
+    }
+    
+    // Create a wrapper App component that uses the discovered layout
     const AppComponent = ({ Component, props }: { Component: React.FC; props: any }) => {
       return React.createElement(LayoutComponent, { children: React.createElement(Component, props) });
     };
-    
+
     const PageComponent = pageModule.default;
     const getStaticProps = pageModule?.getStaticProps;
     const getStaticPaths = pageModule?.getStaticPaths;

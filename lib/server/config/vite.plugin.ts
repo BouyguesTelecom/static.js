@@ -49,9 +49,8 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
             const layoutRelativePath = path.relative(path.dirname(id), layoutPath).replace(/\\/g, '/');
             const layoutImportPath = layoutRelativePath.startsWith('.') ? layoutRelativePath : `./${layoutRelativePath}`;
 
-            // Component found, generating hydration code with discovered layout
+            // Component found, generating hydration code
             const importReactDOM = `import ReactDOM from 'react-dom/client';`;
-            const importLayout = `import { Layout } from "${layoutImportPath.replace('.tsx', '')}";`;
 
             const rootId = crypto
                 .createHash("sha256")
@@ -69,19 +68,14 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
 export const rootId = 'app-${rootId}';
 export const initialDatasId = 'initial-data-${initialDatasId}';
 
-// Create App component with discovered layout
-const AppWithLayout = ({ Component, props }) => {
-  return React.createElement(Layout, { children: React.createElement(Component, props) });
-};
-
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     const initialDataScript = document.getElementById(initialDatasId);
     const initialData = initialDataScript ? JSON.parse(initialDataScript.textContent || '{}') : {title: ''};
-    ReactDOM.hydrateRoot(document.getElementById(rootId), AppWithLayout({Component:${componentName}, props: {data: initialData}}));
+    ReactDOM.hydrateRoot(document.getElementById(rootId), React.createElement(${componentName}, {data: initialData}));
   });
 }`;
-            const transformedCode = importReactDOM + "\n" + importLayout + "\n" + code + "\n" + additionalCode;
+            const transformedCode = importReactDOM + "\n" + code + "\n" + additionalCode;
 
             return {
                 code: transformedCode,

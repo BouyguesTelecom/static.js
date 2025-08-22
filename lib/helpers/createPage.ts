@@ -26,20 +26,20 @@ export const createPage = async ({
                                      returnHtml = false, // Default to false for backward compatibility
                                  }: IcreatePage): Promise<string | void> => {
     const template = `
-<div id=app-{{rootId}}>{{html}}
+{{html}}
 ${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}
 ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
-</div>
 `;
 
     const component = React.createElement(AppComponent, {
-        Component: PageComponent,
+        Component: () => React.createElement('div', {
+            id: `app-${rootId}`
+        }, React.createElement(PageComponent)),
         props: {data},
     });
 
     const htmlContent = template
         .replace("{{initialDatasId}}", initialDatasId)
-        .replace("{{rootId}}", rootId)
         .replace("{{html}}", ReactDOMServer.renderToString(component))
         .replace("{{scriptPath}}", `${JSfileName}.js`);
 

@@ -25,16 +25,21 @@ export const createPage = async ({
                                      JSfileName,
                                      returnHtml = false, // Default to false for backward compatibility
                                  }: IcreatePage): Promise<string | void> => {
-    const template = `
-{{html}}
+    const template = `{{html}}
 ${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}
 ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
 `;
 
+    // Create a wrapper component that adds the app div around the page component
+    const PageWithAppDiv = (props: any) => {
+        return React.createElement('div',
+            { id: `app-${rootId}` },
+            React.createElement(PageComponent, props)
+        );
+    };
+
     const component = React.createElement(AppComponent, {
-        Component: () => React.createElement('div', {
-            id: `app-${rootId}`
-        }, React.createElement(PageComponent)),
+        Component: PageWithAppDiv,
         props: {data},
     });
 

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import path from "path";
-import { findClosestLayout } from "../../helpers/layoutDiscovery.js";
+import {findClosestLayout} from "../../helpers/layoutDiscovery.js";
 
 const getDefaultExportFunctionName = (code: string) => {
     const defaultExportRegex = /export\s+default\s+function\s+(\w+)/;
@@ -39,7 +39,7 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
             // Find the closest layout for this page
             const rootDir = path.resolve(process.cwd(), "src");
             const layoutPath = findClosestLayout(id, rootDir);
-            
+
             if (!layoutPath) {
                 console.warn(`No layout found for page ${id}, falling back to default App`);
                 return null;
@@ -49,8 +49,9 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
             const layoutRelativePath = path.relative(path.dirname(id), layoutPath).replace(/\\/g, '/');
             const layoutImportPath = layoutRelativePath.startsWith('.') ? layoutRelativePath : `./${layoutRelativePath}`;
 
-            // Component found, generating hydration code
+            // Component found, generating hydration code with discovered layout
             const importReactDOM = `import ReactDOM from 'react-dom/client';`;
+            const importLayout = `import { Layout } from "${layoutImportPath.replace('.tsx', '')}";`;
 
             const rootId = crypto
                 .createHash("sha256")
@@ -75,7 +76,7 @@ if (typeof document !== 'undefined') {
     ReactDOM.hydrateRoot(document.getElementById(rootId), React.createElement(${componentName}, {data: initialData}));
   });
 }`;
-            const transformedCode = importReactDOM + "\n" + code + "\n" + additionalCode;
+            const transformedCode = importReactDOM + "\n" + importLayout + "\n" + code + "\n" + additionalCode;
 
             return {
                 code: transformedCode,

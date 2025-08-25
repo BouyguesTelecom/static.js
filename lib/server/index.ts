@@ -7,7 +7,7 @@ import express, {Express} from "express";
 import {Server} from "http";
 
 // Import configuration
-import {CONFIG, isDevelopment} from "./config";
+import {CONFIG, isDevelopment} from "./config/index.js";
 
 // Import middleware modules
 import {applySecurity} from "./middleware/security.js";

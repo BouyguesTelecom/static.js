@@ -18,7 +18,8 @@
     "dev": "npm run build --workspace=lib && npm run dev --workspace=templates/react",
     "test": "npm run test --workspaces --if-present",
     "clean": "npm run clean --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "setup-dev": "node ./setup-dev.js"
   },
   "devDependencies": {
     "@types/node": "^20",

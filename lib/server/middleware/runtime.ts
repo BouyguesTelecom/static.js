@@ -6,7 +6,7 @@
 import { Request, Response, NextFunction, Express } from "express";
 import { ViteDevServer } from "vite";
 import { renderPageRuntime } from "../../helpers/renderPageRuntime.js";
-import { isDevelopment } from "../index";
+import { isDevelopment } from "../index.js";
 import { CONFIG } from "../config/index.js";
 import fs from "fs";
 

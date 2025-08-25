@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction, Express } from "express";
-import { isDevelopment } from "../index";
+import { isDevelopment } from "../index.js";
 
 interface CustomError extends Error {
     status?: number;

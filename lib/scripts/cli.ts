@@ -92,7 +92,8 @@ program
         try {
             console.log('🚀 Starting development server...');
 
-            const devCommand = `NODE_ENV=development tsx server.js`;
+            const serverEntrypoint = path.join(libDir, 'server', 'index.js');
+            const devCommand = `NODE_ENV=development tsx ${serverEntrypoint}`;
             execSync(devCommand, {
                 stdio: 'inherit',
                 cwd: projectRoot

@@ -25,7 +25,7 @@ export default tseslint.config(
           allowConstantExport: true,
           // Allow StaticJS framework functions (similar to Next.js)
           // These functions are consumed by the framework during build time
-          allowExportNames: ['getStaticProps', 'getStaticPaths']
+          allowExportNames: ['getStaticProps', 'getStaticPaths', 'Layout']
         },
       ],
     },

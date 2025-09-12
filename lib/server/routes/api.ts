@@ -64,11 +64,15 @@ export const listPages = async (req: Request, res: Response): Promise<void> => {
         if (isDevelopment) {
             // Use runtime pages discovery in development
             const runtimePages = getAvailablePagesRuntime();
-            pages = Object.keys(runtimePages).map(pageName => ({
-                name: `${pageName}.tsx`,
-                path: pageName === 'index' ? '/' : `/${pageName}`,
-                file: runtimePages[pageName],
-            }));
+            pages = Object.keys(runtimePages).map(pageName => {
+                const filePath = runtimePages[pageName];
+                const isIndexFile = filePath.endsWith('/index.tsx');
+                return {
+                    name: isIndexFile ? `${pageName}/index.tsx` : `${pageName}.tsx`,
+                    path: pageName === 'index' ? '/' : `/${pageName}`,
+                    file: filePath,
+                };
+            });
         } else {
             // Use static file scanning in production
             pages = await getAvailablePages();

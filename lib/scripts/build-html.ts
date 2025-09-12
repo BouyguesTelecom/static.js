@@ -3,7 +3,7 @@ import crypto from "node:crypto";
 import path from "path";
 import {createPage} from "../helpers/createPage.js";
 import {CONFIG} from "../server/config/index.js";
-import {loadCacheEntries} from "../helpers/cachePages";
+import {loadCacheEntries} from "../helpers/cachePages.js";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -57,8 +57,10 @@ async function main() {
                 if (paths && Array.isArray(paths)) {
                     for (const param of paths) {
                         if (param && param.params) {
-                            const paramKey = fileName.replace(/[\[\]]/g, "");
-                            const slug = param.params[paramKey];
+                            // Extract parameter name from page name (e.g., "partials/dynamic/[id]" -> "id")
+                            const paramMatch = page.pageName.match(/\[([^\]]+)\]/);
+                            const paramKey = paramMatch ? paramMatch[1] : null;
+                            const slug = paramKey ? param.params[paramKey] : null;
                             if (slug) {
                                 const {props} = await getStaticProps(param);
                                 const pageName = page.pageName.replace(/\[.*?\]/, slug);

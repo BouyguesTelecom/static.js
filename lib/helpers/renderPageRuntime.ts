@@ -49,25 +49,52 @@ export async function renderPageRuntime(requestPath: string, params?: { [key: st
       // Remove leading slash and try exact match first
       const cleanPath = requestPath.replace(/^\//, "");
       
+      // Try exact match first
       if (pages[cleanPath]) {
         matchedPage = { path: pages[cleanPath], pageName: cleanPath };
       } else {
-        // Try to match dynamic routes
-        for (const [pageName, pagePath] of Object.entries(pages)) {
-          if (pageName.includes("[") && pageName.includes("]")) {
-            // Extract the dynamic parameter name
-            const paramMatch = pageName.match(/\[([^\]]+)\]/);
-            if (paramMatch) {
-              const paramName = paramMatch[1];
-              const staticPart = pageName.replace(/\[.*?\]/, "");
-              
-              if (cleanPath.startsWith(staticPart)) {
-                const paramValue = cleanPath.replace(staticPart, "").replace(/^\//, "");
-                if (paramValue) {
-                  matchedPage = { path: pagePath, pageName: cleanPath };
-                  matchedParams[paramName] = paramValue;
-                  break;
+        // Try to match with different prefixes (for flexibility)
+        const possiblePaths = [
+          cleanPath,
+          `partials/${cleanPath}`,
+          cleanPath.replace(/^partials\//, "")
+        ];
+        
+        for (const testPath of possiblePaths) {
+          if (pages[testPath]) {
+            matchedPage = { path: pages[testPath], pageName: testPath };
+            break;
+          }
+        }
+        
+        // If still no match, try dynamic routes
+        if (!matchedPage) {
+          for (const [pageName, pagePath] of Object.entries(pages)) {
+            if (pageName.includes("[") && pageName.includes("]")) {
+              // Extract the dynamic parameter name
+              const paramMatch = pageName.match(/\[([^\]]+)\]/);
+              if (paramMatch) {
+                const paramName = paramMatch[1];
+                
+                // Try matching against multiple possible paths
+                for (const testPath of possiblePaths) {
+                  // Create a regex pattern from the page name
+                  const regexPattern = pageName.replace(/\[([^\]]+)\]/g, '([^/]+)');
+                  const regex = new RegExp(`^${regexPattern}$`);
+                  
+                  const match = testPath.match(regex);
+                  if (match) {
+                    // Extract the parameter value from the matched groups
+                    const paramValue = match[1];
+                    if (paramValue) {
+                      matchedPage = { path: pagePath, pageName: testPath };
+                      matchedParams[paramName] = paramValue;
+                      break;
+                    }
+                  }
                 }
+                
+                if (matchedPage) break;
               }
             }
           }

@@ -130,6 +130,18 @@ async function processPageRuntime(
   try {
     const pageModule = await import(`${absolutePath}${cacheBuster}`);
     
+    // Load page data.json if it exists
+    const pageDir = path.dirname(absolutePath);
+    const dataJsonPath = path.join(pageDir, 'data.json');
+    let pageData = {};
+    
+    try {
+      const dataContent = await fs.readFile(dataJsonPath, 'utf-8');
+      pageData = JSON.parse(dataContent);
+    } catch (error) {
+      // data.json doesn't exist, use empty object
+    }
+    
     // Discover the closest layout for this page
     const layoutPath = findClosestLayout(absolutePath, rootDir);
     if (!layoutPath) {
@@ -147,9 +159,17 @@ async function processPageRuntime(
       throw new Error(`Layout component not found in ${layoutPath}. Make sure it exports 'Layout'.`);
     }
     
-    // Create a wrapper App component that uses the discovered layout
+    // Create a wrapper App component that uses the actual App component
     const AppComponent = ({ Component, props }: { Component: React.FC; props: any }) => {
-      return React.createElement(LayoutComponent, { children: React.createElement(Component, props) });
+      // Create a layout wrapper that accepts pageData
+      const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+        return React.createElement(LayoutComponent, { pageData, children });
+      };
+      
+      // Use the actual App component and wrap it with our layout
+      return React.createElement(LayoutWrapper, {
+        children: React.createElement(appModule.App, { Component, props, pageData })
+      });
     };
 
     const PageComponent = pageModule.default;

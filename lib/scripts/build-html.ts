@@ -1,9 +1,11 @@
 import fs from "fs/promises";
 import crypto from "node:crypto";
 import path from "path";
+import React from "react";
 import {createPage} from "../helpers/createPage.js";
 import {CONFIG} from "../server/config/index.js";
 import {loadCacheEntries} from "../helpers/cachePages.js";
+import {findClosestLayout} from "../helpers/layoutDiscovery.js";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -29,7 +31,43 @@ async function main() {
             const appModule = await import(`${CONFIG.PROJECT_ROOT}/src/app.tsx`);
             const fileName = path.basename(page.path, path.extname(page.path));
 
-            const AppComponent = appModule.App;
+            // Load page data.json if it exists
+            const pageDir = path.dirname(absolutePath);
+            const dataJsonPath = path.join(pageDir, 'data.json');
+            let pageData = {};
+            
+            try {
+                const dataContent = await fs.readFile(dataJsonPath, 'utf-8');
+                pageData = JSON.parse(dataContent);
+            } catch (error) {
+                // data.json doesn't exist, use empty object
+            }
+
+            // Discover the closest layout for this page
+            const rootDir = path.resolve(CONFIG.PROJECT_ROOT, "./src");
+            const layoutPath = findClosestLayout(absolutePath, rootDir);
+            if (!layoutPath) {
+                throw new Error(`No layout found for page ${page.pageName}`);
+            }
+            
+            const layoutModule = await import(layoutPath);
+            const LayoutComponent = layoutModule.Layout;
+            
+            if (!LayoutComponent) {
+                throw new Error(`Layout component not found in ${layoutPath}. Make sure it exports 'Layout'.`);
+            }
+
+            // Create a wrapper App component that uses the discovered layout and passes pageData
+            const AppComponent = ({ Component, props }: { Component: React.FC; props: any; pageData?: any }) => {
+                const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+                    return React.createElement(LayoutComponent, { pageData, children });
+                };
+                
+                return React.createElement(LayoutWrapper, {
+                    children: React.createElement(appModule.App, { Component, props, pageData })
+                });
+            };
+
             const PageComponent = pageModule.default;
             const getStaticProps = pageModule?.getStaticProps;
             const getStaticPaths = pageModule?.getStaticPaths;
@@ -75,6 +113,7 @@ async function main() {
                                     rootId,
                                     pageName,
                                     JSfileName: JSfileName,
+                                    pageData,
                                 });
 
                                 console.log(`✓ ${pageName}.html`);
@@ -101,6 +140,7 @@ async function main() {
                     rootId,
                     pageName: page.pageName,
                     JSfileName: injectJS && fileName,
+                    pageData,
                 });
 
                 console.log(`✓ ${page.pageName}.html`);

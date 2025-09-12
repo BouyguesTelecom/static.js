@@ -11,6 +11,9 @@ const Index: () => React.JSX.Element = () => {
             <button className="button is-primary" onClick={() => console.log("Home page button clicked!")}>
                 Click me!
             </button>
+            <p>
+                <a href="/partials/page1">Go to /partials/page1</a>
+            </p>
         </>
     );
 };

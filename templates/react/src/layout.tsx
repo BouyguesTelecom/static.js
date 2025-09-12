@@ -1,10 +1,23 @@
 import React from "react";
 
-export const Layout: React.FC<{ children: React.ReactNode }> = ({children}) => {
+interface LayoutProps {
+    children: React.ReactNode;
+    pageData?: {
+        layout?: {
+            title?: string;
+            meta?: {
+                description?: string;
+            };
+        };
+    };
+}
+
+export const Layout = ({children, pageData}: LayoutProps) => {
     return (
         <html lang="fr">
         <head>
-            <title>Static JS</title>
+            <title>{pageData?.layout?.title || "Static JS"}</title>
+            <meta name="description" content={pageData?.layout?.meta?.description || ""}/>
         </head>
         <body>
         <div data-layout="main" className="container">

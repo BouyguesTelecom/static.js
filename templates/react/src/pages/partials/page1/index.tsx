@@ -27,9 +27,8 @@ const Page1: React.FC<DataProps> = ({data}) => {
 
     return (
         <>
-            <p className="title">Page ID: {data?.id}</p>
-            <p>{`${data.completed}`}</p>
             <h1>{page.title}</h1>
+            <p className="title">Page ID: {data?.id}</p>
             <p>{page.description}</p>
             <button className="button is-primary" onClick={() => console.log(data)}>
                 Click me!

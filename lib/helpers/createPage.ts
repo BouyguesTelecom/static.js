@@ -6,13 +6,14 @@ import {CONFIG} from "../server/config/index.js";
 
 interface IcreatePage {
     data: any,
-    AppComponent: React.FC<{ Component: React.FC; props: {} }>,
+    AppComponent: React.FC<{ Component: React.FC; props: {}; pageData?: any }>,
     PageComponent: () => React.JSX.Element,
     initialDatasId: string,
     rootId: string,
     pageName: string,
     JSfileName: string | false,
     returnHtml?: boolean, // New optional parameter for runtime rendering
+    pageData?: any, // New optional parameter for page data
 }
 
 export const createPage = async ({
@@ -24,6 +25,7 @@ export const createPage = async ({
                                      pageName,
                                      JSfileName,
                                      returnHtml = false, // Default to false for backward compatibility
+                                     pageData = {}, // Default to empty object
                                  }: IcreatePage): Promise<string | void> => {
     const template = `{{html}}
 ${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}
@@ -41,6 +43,7 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     const component = React.createElement(AppComponent, {
         Component: PageWithAppDiv,
         props: {data},
+        pageData, // Pass pageData to AppComponent
     });
 
     const htmlContent = template

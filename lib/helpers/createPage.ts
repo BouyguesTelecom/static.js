@@ -46,7 +46,7 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     const htmlContent = template
         .replace("{{initialDatasId}}", initialDatasId)
         .replace("{{html}}", ReactDOMServer.renderToString(component))
-        .replace("{{scriptPath}}", `${JSfileName}.js`);
+        .replace("{{scriptPath}}", `/${pageName}.js`);
 
     // Return HTML string for runtime rendering or write to file for build time
     if (returnHtml) {

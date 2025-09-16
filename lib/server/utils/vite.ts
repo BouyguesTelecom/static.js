@@ -52,6 +52,20 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
             registerJavaScriptMiddleware(app, viteServer);
         } catch (error) {
             console.error('❌ Failed to initialize Vite server:', error);
+            
+            // Check for common Node.js version compatibility issues
+            if (error instanceof TypeError && error.message.includes('crypto.hash is not a function')) {
+                console.error('');
+                console.error('🔧 This error is likely due to a Node.js version compatibility issue.');
+                console.error('   The crypto.hash() method requires Node.js 15.0.0 or higher.');
+                console.error('   Current Node.js version:', process.version);
+                console.error('');
+                console.error('💡 Solutions:');
+                console.error('   1. Update Node.js to version 18+ (recommended)');
+                console.error('   2. Use a compatible Vite version (5.x instead of 6.x)');
+                console.error('   3. Check your package.json engines field');
+                console.error('');
+            }
         }
     }
     

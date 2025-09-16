@@ -7,6 +7,8 @@ import { createServer as createViteServer, ViteDevServer } from "vite";
 import { Express } from "express";
 import { isDevelopment } from "../config/index.js";
 import { registerJavaScriptMiddleware } from "../middleware/runtime.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
 let viteServer: ViteDevServer | null = null;
 
@@ -24,6 +26,11 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
         try {
             // Initializing Vite server
             
+            // Get the absolute path to the vite config file within the package
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = path.dirname(__filename);
+            const configPath = path.resolve(__dirname, '../config/vite.config.js');
+            
             // Create Vite server for development mode JS compilation
             viteServer = await createViteServer({
                 server: {
@@ -33,7 +40,7 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
                     }
                 },
                 appType: 'custom',
-                configFile: '../../lib/server/config/vite.config.ts'
+                configFile: configPath
             });
             
             // Vite server initialized

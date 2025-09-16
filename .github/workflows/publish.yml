@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm i
-          npm run prebuild
+          npm run build
 
       - name: Publish React package on NPM 📦
         run: npm publish --access public

@@ -5,8 +5,13 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { Request, Response, NextFunction, Express } from 'express';
-import { isDevelopment } from '../index.js';
+import { isDevelopment } from '../config/index.js';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Cache for rendered pages and module cache invalidation
 let hotReloadClientScript: string | null = null;
@@ -23,28 +28,32 @@ interface HotReloadStatus {
 const loadHotReloadScript = (): string => {
     if (!hotReloadClientScript) {
         try {
-            // Always resolve to the centralized server location
-            // Find the project root by looking for the lib/server directory structure
-            let projectRoot = process.cwd();
-            
-            while (projectRoot !== path.dirname(projectRoot)) {
-                const libServerDir = path.join(projectRoot, 'lib/server');
-                const packageJson = path.join(projectRoot, 'package.json');
+            // Simplified path resolution - now that build copies static files to _build
+            const possiblePaths = [
+                // Primary: Relative to compiled middleware (_build/server/middleware -> _build/server/static)
+                // Works for both development and npm dependency scenarios
+                path.resolve(__dirname, '../static/hot-reload-client.js'),
                 
-                // Look for lib/server directory structure and package.json to ensure we're at the main project root
-                if (fs.existsSync(libServerDir) && fs.existsSync(packageJson)) {
+                // Fallback: Source directory (for development when running from source)
+                path.resolve(__dirname, '../../server/static/hot-reload-client.js'),
+                
+                // Safety net: Explicit node_modules path (when used as npm dependency)
+                path.join(process.cwd(), 'node_modules/@bouygues-telecom/staticjs/_build/server/static/hot-reload-client.js')
+            ];
+            
+            let scriptPath: string | null = null;
+            for (const possiblePath of possiblePaths) {
+                if (fs.existsSync(possiblePath)) {
+                    scriptPath = possiblePath;
                     break;
                 }
-                projectRoot = path.dirname(projectRoot);
             }
             
-            const scriptPath = path.join(projectRoot, 'lib/server/static/hot-reload-client.js');
-            
-            if (fs.existsSync(scriptPath)) {
+            if (scriptPath) {
                 hotReloadClientScript = fs.readFileSync(scriptPath, 'utf8');
-                // Hot reload client script loaded
+                console.log(`[HotReload] Hot reload client script loaded from: ${scriptPath}`);
             } else {
-                throw new Error(`Script not found at ${scriptPath}`);
+                throw new Error(`Script not found. Tried paths: ${possiblePaths.join(', ')}`);
             }
         } catch (error) {
             console.error('[HotReload] Failed to load hot reload client script:', error);
@@ -65,14 +74,16 @@ export const hotReloadStaticMiddleware = (req: Request, res: Response, next: Nex
         return next();
     }
 
-    // Serve hot reload client script
-    if (req.path === '/hot-reload-client.js') {
+    // Serve hot reload client script - handle this BEFORE any other middleware
+    if (req.path === '/hot-reload-client.js' || req.url === '/hot-reload-client.js') {
+        console.log('[HotReload] Serving hot reload client script');
         const script = loadHotReloadScript();
-        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.setHeader('Pragma', 'no-cache');
         res.setHeader('Expires', '0');
-        res.send(script);
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.status(200).send(script);
         return;
     }
 
@@ -158,12 +169,8 @@ export const applyHotReload = (app: Express): void => {
         return;
     }
 
-    // Applying hot reload middleware
-    
-    // Apply static file serving middleware first
-    app.use(hotReloadStaticMiddleware);
-    
-    // Apply injection middleware
+    // Applying hot reload injection middleware only
+    // (static middleware is applied separately before Vite)
     app.use(hotReloadInjectionMiddleware);
 };
 

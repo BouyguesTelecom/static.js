@@ -49,13 +49,19 @@ export const createApp = async (): Promise<Express> => {
     applyParsing(app);
     applyLogging(app);
 
-    // Hot reload middleware (development mode only) - MUST be before runtime
-    applyHotReload(app);
+    // Hot reload static middleware MUST be applied before Vite to ensure proper serving
+    if (isDevelopment) {
+        const { hotReloadStaticMiddleware } = await import('./middleware/hotReload.js');
+        app.use(hotReloadStaticMiddleware);
+    }
 
     // Initialize Vite server and register JavaScript routes BEFORE runtime middleware
     if (isDevelopment) {
         await initializeViteServer(app);
     }
+
+    // Hot reload injection middleware (development mode only) - MUST be before runtime
+    applyHotReload(app);
 
     // Runtime rendering middleware (development mode only)
     // JavaScript routes are now registered before this middleware

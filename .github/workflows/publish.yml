@@ -17,20 +17,15 @@ jobs:
           node-version: "24.x"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Extract version tag
-        id: get_version
-        run: echo "::set-output name=VERSION::${GITHUB_REF#refs/tags/}"
-
-      - name: Change version for React package 📌
-        run: |
-          npm version --no-git-tag-version ${{ steps.get_version.outputs.VERSION }}
-
       - name: Install dependencies
         run: |
           npm i
-          npm run prebuild
+          npm run build:lib
 
       - name: Publish React package on NPM 📦
-        run: npm publish --access public
+        run: |
+          cd lib
+          npm version ${{ github.event.release.tag_name }} --no-git-tag-version
+          npm publish --access public --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}

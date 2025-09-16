@@ -84,13 +84,32 @@ cd your-project
 npm i
 ```
 
-### 3. Build & Start the server
+### 3. Start development
+
+#### Quick start (recommended)
+
+```bash
+npm run dev
+```
+
+> 💡 **Note**: The first run may take longer as it automatically builds the project and generates required cache files.
+
+#### Alternative: Build then start
+
+```bash
+npm run build
+npm run dev
+```
+
+🎉 **Your project is now accessible at** `http://localhost:3000` with hot reloading enabled
+
+#### Production build and serve
 
 ```bash
 npm run start
 ```
 
-🎉 **Your project is now accessible at** `http://localhost:3300`
+🎉 **Production server accessible at** `http://localhost:3300`
 
 ## 🔄 Revalidation
 
@@ -140,10 +159,43 @@ your-project/
 
 ## 🛠️ Available scripts
 
-| Script          | Description                      |
-| --------------- | -------------------------------- |
-| `npm run build` | Build the project for production |
-| `npm run start` | Start the production server      |
+| Script                | Description                                           |
+| --------------------- | ----------------------------------------------------- |
+| `npm run dev`         | Start development server with hot reloading          |
+| `npm run dev:force-build` | Force build then start development server        |
+| `npm run validate-setup` | Check if all required files are present           |
+| `npm run build`       | Build the project for production                     |
+| `npm run start`       | Build and start the production server                |
+| `npm run serve`       | Serve pre-built files (requires prior build)         |
+
+### Development Workflow
+
+1. **First time setup**: Run `npm run dev` - it will automatically build if needed
+2. **Daily development**: Use `npm run dev` for hot reloading
+3. **Troubleshooting**: Run `npm run validate-setup` to check for issues
+4. **Force rebuild**: Use `npm run dev:force-build` if cache issues occur
+
+### Hot Reloading
+
+The development server includes **WebSocket-based hot reloading** for:
+- ✅ React components (`.tsx`, `.jsx`)
+- ✅ TypeScript/JavaScript files (`.ts`, `.js`)
+- ✅ CSS and styling changes (`.css`, `.scss`, `.sass`, `.less`)
+- ✅ Static assets (images, fonts)
+- ✅ Configuration files (triggers full reload)
+
+**Features**:
+- 🔄 **Instant reloads** - Changes reflected in < 300ms
+- 🎯 **Smart reload types** - CSS changes don't trigger full page reload
+- 📍 **Scroll preservation** - Maintains scroll position across reloads
+- 🔗 **Auto-reconnection** - Reconnects automatically if connection is lost
+- 👁️ **Visual indicators** - Connection status and reload notifications
+
+> 🔧 **Troubleshooting**:
+> - Check for green status indicator in top-right corner
+> - If hot reloading stops working, try `npm run dev:force-build`
+> - Visit `/hot-reload-client.js` to verify client script loads
+> - Check browser console for `[HotReload]` messages
 
 ## 📄 License
 

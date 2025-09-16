@@ -1,46 +1,40 @@
 #!/usr/bin/env node
 
-import {program} from "commander";
-import {execSync} from "node:child_process";
-import {dirname} from "node:path";
-import {fileURLToPath} from "node:url";
+import { Spinner } from "cli-spinner";
+import { downloadTemplate } from "giget";
 import path from "path";
+import readline from "readline";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-program
-    .command("build")
-    .description("Build with static.js configuration")
-    .action(() => {
-        try {
-            const cachePagesPath = path.resolve(
-                __dirname,
-                "../helpers/cachePages.js"
-            );
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+});
 
-            const htmlConfig = path.resolve(__dirname, "./build-html.js");
-            const dest = process.cwd();
-            console.log("Executing static.js config...");
+async function createReactPowerStatic(projectName: string) {
+    const dest = path.join(process.cwd(), projectName);
+    const spinner = new Spinner("Creating react project... %s");
+    spinner.setSpinnerString("|/-\\");
+    spinner.start();
 
-            execSync("rimraf _build", {
-                cwd: dest,
-                stdio: "inherit",
-            });
+    try {
+        await downloadTemplate(`github:BouyguesTelecom/static.js/templates/react`, {
+            force: true,
+            provider: "github",
+            cwd: dest,
+            dir: `.`,
+        });
 
-            execSync(`rimraf _build/cache && node ${cachePagesPath}`, {
-                cwd: dest,
-                stdio: "inherit",
-            });
+        spinner.stop(true);
+        console.log("React project created successfully in " + dest);
+    } catch (error) {
+        spinner.stop(true);
+        console.error("Error can't create react project:", error);
+        process.exit(1);
+    } finally {
+        rl.close();
+    }
+}
 
-            execSync(`vite build && tsx ${htmlConfig}`, {
-                cwd: dest,
-                stdio: "inherit",
-            });
-
-            console.log("Build completed successfully");
-        } catch (error) {
-            console.error("Build failed:", error);
-            process.exit(1);
-        }
-    });
-
-program.parse(process.argv);
+rl.question("Enter the name for your new project: ", (projectName) => {
+    createReactPowerStatic(projectName);
+});

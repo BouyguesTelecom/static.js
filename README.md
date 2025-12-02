@@ -1,158 +1,99 @@
-<div align="center">
+# StaticJS
 
-# 🚀 StaticJS
+A modern static site generator for React applications with smart revalidation and hot reloading.
 
-**A modern React boilerplate for creating static projects**
+## Features
 
-[![npm version](https://badge.fury.io/js/%40bouygues-telecom%2Fstaticjs.svg)](https://badge.fury.io/js/%40bouygues-telecom%2Fstaticjs)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D16.0.0-brightgreen.svg)](https://nodejs.org/)
+- ⚡ Fast static site generation with React & TypeScript
+- 🔄 WebSocket-based hot reloading during development
+- 🎯 Smart page revalidation - rebuild specific pages without full rebuilds
+- 🛠️ Simple CLI commands
+- 📦 Optimized production builds with Vite
 
-_Start your static projects in seconds with an optimized architecture_
+## Prerequisites
 
-[Installation](#-installation) • [Usage](#-usage) • [Features](#-features) • [Examples](#-examples)
-
-</div>
-
-## 📖 Table of Contents
-
-- [🎯 About](#-about)
-- [✨ Features](#-features)
-- [🚀 Installation](#-installation)
-- [📘 Usage](#-usage)
-- [🔄 Revalidation](#-revalidation)
-- [⚙️ Configuration](#️-configuration)
-- [📚 Examples](#-examples)
-- [📄 License](#-license)
-
-## 🎯 About
-
-**StaticJS** is a powerful and modern boilerplate designed for creating static projects. It integrates development best practices and offers advanced features like specific page revalidation.
-
-### Why StaticJS?
-
-- ⚡ **Ultra-fast startup** - Initialize your project in seconds
-- 🔄 **Smart revalidation** - Rebuild specific pages on demand
-- 🏗️ **Modern architecture** - Optimized and maintainable project structure
-- 🚀 **Production ready** - Production-ready configuration
-- 📱 **Responsive** - Native support for all devices
-
-## ✨ Features
-
-| Feature                       | Description                                    |
-| ----------------------------- | ---------------------------------------------- |
-| 🚀 **Fast generation**        | Project creation with a single command         |
-| 🔄 **WebSocket Hot Reloading** | Real-time WebSocket-based development reloading |
-| 📦 **Optimized build**        | Production-optimized bundle                    |
-| 🎯 **Targeted revalidation**  | Specific page reconstruction via API           |
-| 🛠️ **Flexible configuration** | Advanced customization according to your needs |
-| 📊 **Performance**            | Automatic performance optimizations            |
-
-## 🚀 Installation
-
-### Prerequisites
-
-- Node.js >= 16.0.0
+- Node.js >= 18.0.0
 - npm >= 7.0.0
 
-### Global installation
+## Installation
 
 ```bash
-npm i @bouygues-telecom/staticjs -g
+npm install @bouygues-telecom/staticjs -g
 ```
 
-> 💡 **Tip**: Global installation allows you to use the `create-staticjs-app` command from anywhere on your system.
+## Quick Start
 
-## 📘 Usage
-
-### 1. Create a new project
+### Create a new project
 
 ```bash
 create-staticjs-app
-```
-
-This command will:
-
-- 📁 Create the folder structure
-- ⚙️ Configure base files
-- 📦 Prepare the development environment
-
-### 2. Install dependencies
-
-```bash
 cd your-project
-npm i
+npm install
 ```
 
-### 3. Build & Start the server
+### Development
 
 ```bash
+npm run dev
+```
+
+Your site will be available at `http://localhost:3000`
+
+### Production
+
+```bash
+npm run build
 npm run start
 ```
 
-🎉 **Your project is now accessible at** `http://localhost:3300`
+Production server runs at `http://localhost:3456`
 
-## 🔄 Revalidation
+## CLI Commands
 
-StaticJS offers a unique **targeted revalidation** feature that allows rebuilding specific pages without rebuilding the entire project.
+- `static dev` - Start development server with hot reload
+- `static build` - Build static site for production
+- `static start` - Serve built files in production mode
 
-### Basic syntax
+See [CLI_USAGE.md](CLI_USAGE.md) for detailed command documentation.
 
-```bash
-curl -X POST http://localhost:3000/revalidate \
-  -H "Content-Type: application/json" \
-  -d '{ "paths": ["page.tsx"] }'
-```
-
-## 📚 Examples
-
-#### Revalidate a single page
-
-```bash
-curl -X POST http://localhost:3000/revalidate \
-  -H "Content-Type: application/json" \
-  -d '{ "paths": ["home.tsx"] }'
-```
-
-#### Revalidate multiple pages
-
-```bash
-curl -X POST http://localhost:3000/revalidate \
-  -H "Content-Type: application/json" \
-  -d '{ "paths": ["home.tsx", "about.tsx", "contact.tsx"] }'
-```
-
-## ⚙️ Configuration
-
-### Project structure
+## Project Structure
 
 ```
 your-project/
-├── 📁 src/
-│   ├── 📁 pages/          # Your pages
-│   ├── 📁 components/     # Reusable components
-│   ├── 📁 styles/         # Style files
-│   └── 📁 utils/          # Utilities
-├── 📁 public/             # Static assets
-├── 📄 package.json
-└── 📄 server.js           # StaticJS server
+├── src/
+│   ├── pages/          # Your pages
+│   ├── components/     # Reusable components
+│   ├── styles/         # Style files
+│   └── app.tsx         # App entry point
+├── _build/             # Generated static files
+└── static.config.ts    # Configuration
 ```
 
-## 🛠️ Available scripts
+## Revalidation API
 
-| Script          | Description                      |
-| --------------- | -------------------------------- |
-| `npm run build` | Build the project for production |
-| `npm run start` | Start the production server      |
+Rebuild specific pages without a full rebuild:
 
-## 📄 License
+```bash
+curl -X POST http://localhost:3000/revalidate \
+  -H "Content-Type: application/json" \
+  -d '{ "paths": ["home.tsx", "about.tsx"] }'
+```
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+## Development Setup (Monorepo)
+
+For contributors working on the StaticJS library itself:
+
+```bash
+npm install
+node setup-dev.js
+```
+
+This sets up the development environment with local package linking.
+
+## License
+
+MIT
 
 ---
 
-<div align="center">
-
-**Developed with ❤️ by the Bouygues Telecom team**
-
-</div>
+**Built with ❤️ by Bouygues Telecom**

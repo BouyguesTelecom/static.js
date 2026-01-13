@@ -3,21 +3,21 @@ import { Request, Response } from "express";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import path from "path";
-import { isDevelopment } from "../config/index.js";
+import { isDevelopment, CONFIG } from "../config/index.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Validation des chemins autorisés
+// Validate allowed paths
 const validatePath = (inputPath: string): boolean => {
-  // Autoriser seulement les chemins alphanumériques avec / - _ .
+  // Allow only alphanumeric paths with / - _ .
   const pathRegex = /^[a-zA-Z0-9\/_.-]*$/;
   
-  // Vérifier le format
+  // Check format
   if (!pathRegex.test(inputPath)) {
     return false;
   }
   
-  // Interdire les séquences dangereuses
+  // Block dangerous patterns
   const dangerousPatterns = [
     '..',     // Directory traversal
     ';',      // Command injection
@@ -41,20 +41,20 @@ const validatePath = (inputPath: string): boolean => {
   return !dangerousPatterns.some(pattern => inputPath.includes(pattern));
 };
 
-// Authentification basique pour l'endpoint revalidate
+// Basic authentication for revalidate endpoint
 const validateRevalidateAuth = (req: Request): boolean => {
   const authToken = req.headers['x-revalidate-token'] as string;
-  const expectedToken = process.env.REVALIDATE_TOKEN;
+  const expectedToken = CONFIG.REVALIDATE_TOKEN;
   
-  // En développement, permettre sans token si pas configuré
+  // In development, allow without token if not configured
   if (isDevelopment && !expectedToken) {
-    console.warn('[Security] Revalidate endpoint accessible sans authentification en mode développement');
+    console.warn('[Security] Revalidate endpoint accessible without authentication in development mode');
     return true;
   }
   
-  // En production, exiger un token
+  // In production, require a token
   if (!expectedToken) {
-    console.error('[Security] REVALIDATE_TOKEN non configuré en production');
+    console.error('[Security] REVALIDATE_TOKEN not configured in production');
     return false;
   }
   
@@ -63,47 +63,47 @@ const validateRevalidateAuth = (req: Request): boolean => {
 
 export const revalidate = (req: Request, res: Response): void | Response => {
   try {
-    // Vérification de l'authentification
+    // Authentication verification
     if (!validateRevalidateAuth(req)) {
-      console.warn(`[Security] Tentative d'accès non autorisée à /revalidate depuis ${req.ip}`);
+      console.warn(`[Security] Unauthorized access attempt to /revalidate from ${req.ip}`);
       res.status(401).json({
         success: false,
         error: 'Unauthorized',
-        message: 'Token d\'authentification requis'
+        message: 'Authentication token required'
       });
       return;
     }
 
     const paths = req?.body?.paths || [];
     
-    // Validation stricte des chemins
+    // Strict path validation
     if (!Array.isArray(paths)) {
       res.status(400).json({
         success: false,
         error: 'Bad Request',
-        message: 'Le paramètre paths doit être un tableau'
+        message: 'The paths parameter must be an array'
       });
       return;
     }
     
-    // Valider chaque chemin individuellement
+    // Validate each path individually
     const validatedPaths: string[] = [];
     for (const inputPath of paths) {
       if (typeof inputPath !== 'string') {
         res.status(400).json({
           success: false,
           error: 'Bad Request',
-          message: 'Tous les chemins doivent être des chaînes de caractères'
+          message: 'All paths must be strings'
         });
         return;
       }
       
       if (!validatePath(inputPath)) {
-        console.warn(`[Security] Chemin invalide détecté: ${inputPath}`);
+        console.warn(`[Security] Invalid path detected: ${inputPath}`);
         res.status(400).json({
           success: false,
           error: 'Bad Request',
-          message: `Chemin invalide: ${inputPath}`
+          message: `Invalid path: ${inputPath}`
         });
         return;
       }
@@ -111,13 +111,17 @@ export const revalidate = (req: Request, res: Response): void | Response => {
       validatedPaths.push(inputPath);
     }
 
-    const cachePages = path.resolve(__dirname, "../../../helpers/cachePages.js");
-    const buildHtmlConfig = path.resolve(__dirname, "../../../scripts/build-html.js");
+    const cachePages = path.resolve(__dirname, "../../helpers/cachePages.js");
+    const buildHtmlConfig = path.resolve(__dirname, "../../scripts/build-html.js");
+    
+    // Use spawn instead of exec to prevent command injection
+    // First command: cachePages
     const cacheArgs = validatedPaths.length > 0 ? validatedPaths : [];
     const cacheProcess = spawn('node', [cachePages, ...cacheArgs], {
       stdio: 'pipe',
       env: {
         ...process.env
+        // Removed dangerous TLS bypass: NODE_TLS_REJECT_UNAUTHORIZED: '0'
       }
     });
 
@@ -138,7 +142,7 @@ export const revalidate = (req: Request, res: Response): void | Response => {
         res.status(500).json({
           success: false,
           error: 'Internal Server Error',
-          message: 'Échec de la mise en cache'
+          message: 'Cache process failed'
         });
         return;
       }
@@ -165,7 +169,7 @@ export const revalidate = (req: Request, res: Response): void | Response => {
           res.status(500).json({
             success: false,
             error: 'Internal Server Error',
-            message: 'Échec de la construction'
+            message: 'Build process failed'
           });
           return;
         }
@@ -174,8 +178,8 @@ export const revalidate = (req: Request, res: Response): void | Response => {
         
         res.status(200).json({
           success: true,
-          message: `Revalidation réussie, chemins: ${
-            validatedPaths.length > 0 ? validatedPaths.join(", ") : "toutes les pages"
+          message: `Revalidation successful, paths: ${
+            validatedPaths.length > 0 ? validatedPaths.join(", ") : "all pages"
           }`,
           paths: validatedPaths
         });
@@ -186,7 +190,7 @@ export const revalidate = (req: Request, res: Response): void | Response => {
         res.status(500).json({
           success: false,
           error: 'Internal Server Error',
-          message: 'Erreur lors de la construction'
+          message: 'Build process error'
         });
       });
     });
@@ -196,7 +200,7 @@ export const revalidate = (req: Request, res: Response): void | Response => {
       res.status(500).json({
         success: false,
         error: 'Internal Server Error',
-        message: 'Erreur lors de la mise en cache'
+        message: 'Cache process error'
       });
     });
 

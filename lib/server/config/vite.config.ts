@@ -2,10 +2,20 @@ import path from "path";
 import {defineConfig, loadEnv} from "vite";
 import {addHydrationCodePlugin} from "./vite.plugin";
 import {loadCacheEntries} from "../../helpers/cachePages.js";
-import {CONFIG} from "./index";
 
-// Load cache entries using the refactored helper function
-const entries = loadCacheEntries(CONFIG.PROJECT_ROOT);
+// Fallback configuration for build context
+const PROJECT_ROOT = process.cwd();
+const BUILD_DIR = "_build";
+
+// Load cache entries using the current working directory
+const entries = loadCacheEntries(PROJECT_ROOT);
+
+// Fallback if no entries are found to prevent Rollup error
+const safeEntries = entries && Object.keys(entries).length > 0 ? entries : {
+    'index': path.resolve(PROJECT_ROOT, 'src/pages/home/index.tsx')
+};
+
+console.log('[Vite Config] Loaded entries:', Object.keys(safeEntries));
 
 export default defineConfig(({ mode }) => {
     // Load environment variables from .env files
@@ -15,20 +25,20 @@ export default defineConfig(({ mode }) => {
     return {
         resolve: {
             alias: {
-                "@": path.resolve(CONFIG.PROJECT_ROOT, "src")
+                "@": path.resolve(PROJECT_ROOT, "src")
             },
         },
         build: {
-            outDir: path.resolve(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR),
+            outDir: path.resolve(PROJECT_ROOT, BUILD_DIR),
             emptyOutDir: false,
             rollupOptions: {
-                input: entries,
+                input: safeEntries,
                 output: {
                     entryFileNames: "[name].js",
                     chunkFileNames: "assets/vendor-[hash].js",
                 },
             },
         },
-        plugins: [addHydrationCodePlugin(entries)],
+        plugins: [addHydrationCodePlugin(safeEntries)],
     };
 });

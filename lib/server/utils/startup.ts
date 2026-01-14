@@ -22,7 +22,7 @@ export const startServer = async (
         await initializeViteServer(app);
     }
 
-    return app.listen(CONFIG.PORT, () => {
+    return app.listen(CONFIG.PORT, CONFIG.HOST, () => {
         const viteServer = getViteServer();
         const wsClients = getConnectedClientsCount();
         const watchedFiles = getWatchedFilesCount();
@@ -32,12 +32,14 @@ export const startServer = async (
 =====================================
 Environment: ${CONFIG.NODE_ENV}
 Port: ${CONFIG.PORT}
-URL: http://localhost:${CONFIG.PORT}
-Health Check: http://localhost:${CONFIG.PORT}/health
-Pages API: http://localhost:${CONFIG.PORT}/api/pages
+Host: ${CONFIG.HOST} ${CONFIG.HOST === '127.0.0.1' ? '🔒 (sécurised - localhost)' : '⚠️  (accessible externally)'}
+URL: http://${CONFIG.HOST}:${CONFIG.PORT}
+Health Check: http://${CONFIG.HOST}:${CONFIG.PORT}/health
+Pages API: http://${CONFIG.HOST}:${CONFIG.PORT}/api/pages
 ${viteServer ? 'Vite JS Compilation: ✅ Enabled' : 'Vite JS Compilation: ❌ Disabled'}
 ${CONFIG.WEBSOCKET_ENABLED ? `WebSocket Hot Reload: ✅ Enabled (${wsClients} clients)` : 'WebSocket Hot Reload: ❌ Disabled'}
 ${CONFIG.FILE_WATCHING_ENABLED ? `File Watching: ✅ Enabled (${watchedFiles} files)` : 'File Watching: ❌ Disabled'}
+${CONFIG.REVALIDATE_TOKEN ? 'Revalidate Security: ✅ Token configured' : 'Revalidate Security: ⚠️  No token (dev only)'}
 =====================================
       `);
     });

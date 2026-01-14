@@ -74,7 +74,7 @@ export const CONFIG: ServerConfig = {
     WEBSOCKET_PATH: '/ws',
     FILE_WATCH_DEBOUNCE: 300, // milliseconds
     
-    // Token de sécurité pour l'endpoint revalidate
+    // Revalidate token for secure cache revalidation
     REVALIDATE_TOKEN: process.env.REVALIDATE_TOKEN,
 };
 

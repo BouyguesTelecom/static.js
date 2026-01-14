@@ -121,7 +121,6 @@ export const revalidate = (req: Request, res: Response): void | Response => {
       stdio: 'pipe',
       env: {
         ...process.env
-        // Removed dangerous TLS bypass: NODE_TLS_REJECT_UNAUTHORIZED: '0'
       }
     });
 

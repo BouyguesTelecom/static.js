@@ -56,15 +56,15 @@ export interface ServerConfig {
 
 export const CONFIG: ServerConfig = {
     PORT: Number(process.env.PORT) || 3456,
-    HOST: process.env.HOST || '127.0.0.1', // Écouter seulement sur localhost par défaut
+    HOST: process.env.HOST || '127.0.0.1',
     NODE_ENV: process.env.NODE_ENV || 'development',
     PROJECT_ROOT: path.resolve(process.cwd()),
     BUILD_DIR: '_build',
     REQUEST_TIMEOUT: 30000, // 30 seconds
-    BODY_SIZE_LIMIT: '1mb', // Réduire la limite pour la sécurité
+    BODY_SIZE_LIMIT: '1mb',
     RATE_LIMIT_WINDOW: 15 * 60 * 1000, // 15 minutes
-    RATE_LIMIT_MAX: 100, // Réduire le nombre de requêtes autorisées
-    REVALIDATE_RATE_LIMIT_MAX: 10, // Limite encore plus stricte pour revalidate
+    RATE_LIMIT_MAX: 100,
+    REVALIDATE_RATE_LIMIT_MAX: 10,
     CACHE_MAX_AGE: process.env.NODE_ENV === 'production' ? 86400 : 0, // 1 day in prod, no cache in dev
 
     // Hot reload configuration

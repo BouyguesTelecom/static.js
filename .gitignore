@@ -13,7 +13,6 @@ templates/react/test
 node_modules
 *.local
 
-# Environment variables
 .env
 .env.local
 .env.development.local

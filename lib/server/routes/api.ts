@@ -3,13 +3,14 @@
  * Handles health check, pages listing, and revalidate endpoints
  */
 
-import { Request, Response, Express } from "express";
+import { Request, Response, NextFunction, Express } from "express";
 import { revalidate } from "../scripts/revalidate.js";
 import { getAvailablePagesRuntime } from "../../helpers/renderPageRuntime.js";
 import { readdir } from "fs/promises";
 import { extname, join } from "path";
 import { CONFIG, isDevelopment } from "../config/index.js";
 import { revalidateLimiter } from "../middleware/rateLimiting.js";
+import crypto from "crypto";
 
 interface PageInfo {
     name: string;
@@ -98,6 +99,65 @@ export const listPages = async (req: Request, res: Response): Promise<void> => {
 };
 
 /**
+ * Authentication middleware for revalidate endpoint
+ * Requires API key in production, optional in development
+ */
+export const revalidateAuth = (req: Request, res: Response, next: NextFunction): void => {
+    const apiKey = CONFIG.REVALIDATE_API_KEY;
+
+    // In development, allow requests without API key if none is configured
+    if (isDevelopment && !apiKey) {
+        return next();
+    }
+
+    // In production, API key is required
+    if (!apiKey) {
+        console.error('[Security] REVALIDATE_API_KEY not configured in production');
+        res.status(503).json({
+            success: false,
+            error: 'Revalidation endpoint not configured',
+        });
+        return;
+    }
+
+    // Check for API key in Authorization header (Bearer token) or X-API-Key header
+    const authHeader = req.headers.authorization;
+    const apiKeyHeader = req.headers['x-api-key'];
+
+    let providedKey: string | undefined;
+
+    if (authHeader?.startsWith('Bearer ')) {
+        providedKey = authHeader.slice(7);
+    } else if (typeof apiKeyHeader === 'string') {
+        providedKey = apiKeyHeader;
+    }
+
+    if (!providedKey) {
+        res.status(401).json({
+            success: false,
+            error: 'Authentication required',
+            message: 'Provide API key via Authorization: Bearer <key> or X-API-Key header',
+        });
+        return;
+    }
+
+    // Use timing-safe comparison to prevent timing attacks
+    const isValid = providedKey.length === apiKey.length &&
+        crypto.timingSafeEqual(Buffer.from(providedKey), Buffer.from(apiKey));
+
+    if (!isValid) {
+        console.warn('[Security] Invalid API key attempt for revalidate endpoint');
+        res.status(403).json({
+            success: false,
+            error: 'Invalid API key',
+        });
+        return;
+    }
+
+    next();
+};
+
+/**
  * Revalidate endpoint with enhanced error handling and rate limiting
  */
 export const revalidateEndpoint = async (req: Request, res: Response): Promise<void> => {
@@ -156,5 +216,5 @@ async function getAvailablePages(): Promise<PageInfo[]> {
 export const registerApiRoutes = (app: Express): void => {
     app.get('/health', healthCheck);
     app.get('/api/pages', listPages);
-    app.post('/revalidate', revalidateLimiter, revalidateEndpoint);
+    app.post('/revalidate', revalidateLimiter, revalidateAuth, revalidateEndpoint);
 };

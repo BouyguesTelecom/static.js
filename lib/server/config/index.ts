@@ -15,6 +15,7 @@ export interface ServerConfig {
     RATE_LIMIT_WINDOW: number;
     RATE_LIMIT_MAX: number;
     REVALIDATE_RATE_LIMIT_MAX: number;
+    REVALIDATE_API_KEY: string;
     CACHE_MAX_AGE: number;
     HOT_RELOAD_ENABLED: boolean;
     WEBSOCKET_ENABLED: boolean;
@@ -37,6 +38,7 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
     RATE_LIMIT_WINDOW: (v) => typeof v === 'number' && v > 0 && v <= 86400000,
     RATE_LIMIT_MAX: (v) => typeof v === 'number' && v > 0 && v <= 10000,
     REVALIDATE_RATE_LIMIT_MAX: (v) => typeof v === 'number' && v > 0 && v <= 1000,
+    REVALIDATE_API_KEY: (v) => typeof v === 'string' && v.length >= 16 && v.length <= 256,
     CACHE_MAX_AGE: (v) => typeof v === 'number' && v >= 0 && v <= 31536000,
     HOT_RELOAD_ENABLED: (v) => typeof v === 'boolean',
     WEBSOCKET_ENABLED: (v) => typeof v === 'boolean',
@@ -55,6 +57,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
     RATE_LIMIT_WINDOW: 15 * 60 * 1000, // 15 minutes
     RATE_LIMIT_MAX: 100, // requests per window
     REVALIDATE_RATE_LIMIT_MAX: 10, // stricter limit for revalidate endpoint
+    REVALIDATE_API_KEY: process.env.REVALIDATE_API_KEY || '', // API key for revalidate endpoint (required in production)
     CACHE_MAX_AGE: process.env.NODE_ENV === 'production' ? 86400 : 0, // 1 day in prod, no cache in dev
 
     // Hot reload configuration

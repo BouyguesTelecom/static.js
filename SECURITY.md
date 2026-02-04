@@ -13,7 +13,7 @@ This security analysis identified **3 critical**, **5 high**, **5 medium**, and 
 | Severity | Count | Status |
 |----------|-------|--------|
 | CRITICAL | 3 | **FIXED** |
-| HIGH | 5 | Pending |
+| HIGH | 5 | 1 Fixed, 4 Pending |
 | MEDIUM | 5 | Pending |
 | LOW | 4 | Pending |
 
@@ -82,18 +82,21 @@ Setting this globally disables TLS certificate validation, making the applicatio
 
 ## High Severity Findings
 
-### 4. Unprotected Revalidate Endpoint
+### 4. Unprotected Revalidate Endpoint - FIXED
 
-**Location**: `lib/server/routes/api.ts:159`
+**Location**: `lib/server/routes/api.ts`
 
-**Issue**: The `/revalidate` POST endpoint has rate limiting but no authentication.
+**Issue**: The `/revalidate` POST endpoint had rate limiting but no authentication.
 
-**Impact**: Any unauthenticated user can trigger expensive rebuild operations (DoS potential).
+**Impact**: Any unauthenticated user could trigger expensive rebuild operations (DoS potential).
 
-**Recommendation**:
-- Add API key or bearer token authentication
-- Restrict to development environment or whitelisted IPs
-- Implement exponential backoff rate limiting
+**Fix Applied**:
+- Added API key authentication middleware (`revalidateAuth`)
+- Supports `Authorization: Bearer <key>` or `X-API-Key` header
+- Uses timing-safe comparison to prevent timing attacks
+- In development: allows requests without API key if none configured
+- In production: requires `REVALIDATE_API_KEY` environment variable or config
+- API key must be 16-256 characters long
 
 ---
 
@@ -253,7 +256,7 @@ export const corsMiddleware = cors({
 ## Immediate Actions Required
 
 1. ~~**Remove all `NODE_TLS_REJECT_UNAUTHORIZED = "0"` lines**~~ - DONE
-2. **Add authentication to `/revalidate` endpoint** - HIGH priority
+2. ~~**Add authentication to `/revalidate` endpoint**~~ - DONE
 3. ~~**Implement path whitelist validation for revalidate**~~ - DONE
 4. ~~**Validate `static.config.ts` imports with schema**~~ - DONE
 5. **Fix CSP configuration (remove `unsafe-inline`)** - HIGH priority
@@ -292,3 +295,4 @@ export const corsMiddleware = cors({
 |------|---------|---------|
 | 2026-02-04 | 1.0 | Initial security analysis |
 | 2026-02-04 | 1.1 | Fixed all 3 critical issues (TLS validation, command injection, unsafe import) |
+| 2026-02-04 | 1.2 | Fixed HIGH #4: Added API key authentication to revalidate endpoint |

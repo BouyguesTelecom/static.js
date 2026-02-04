@@ -13,7 +13,7 @@ This security analysis identified **3 critical**, **5 high**, **5 medium**, and 
 | Severity | Count | Status |
 |----------|-------|--------|
 | CRITICAL | 3 | **FIXED** |
-| HIGH | 5 | 1 Fixed, 4 Pending |
+| HIGH | 5 | 2 Fixed, 3 Pending |
 | MEDIUM | 5 | Pending |
 | LOW | 4 | Pending |
 
@@ -100,18 +100,21 @@ Setting this globally disables TLS certificate validation, making the applicatio
 
 ---
 
-### 5. Environment Variable Leakage
+### 5. Environment Variable Leakage - FIXED
 
-**Location**: `lib/server/scripts/revalidate.ts:25`
+**Location**: `lib/server/scripts/revalidate.ts`
 
 **Issue**:
 ```typescript
 { env: { ...process.env, NODE_TLS_REJECT_UNAUTHORIZED: "0" } }
 ```
 
-All environment variables (including secrets) are passed to child processes.
+All environment variables (including secrets) were passed to child processes.
 
-**Recommendation**: Only pass necessary, non-sensitive environment variables.
+**Fix Applied**: Added `getSafeEnv()` function that only passes safe variables:
+- `PATH` - required for command execution
+- `HOME` - required for npm/node
+- `NODE_ENV` - required for environment detection
 
 ---
 
@@ -296,3 +299,4 @@ export const corsMiddleware = cors({
 | 2026-02-04 | 1.0 | Initial security analysis |
 | 2026-02-04 | 1.1 | Fixed all 3 critical issues (TLS validation, command injection, unsafe import) |
 | 2026-02-04 | 1.2 | Fixed HIGH #4: Added API key authentication to revalidate endpoint |
+| 2026-02-04 | 1.3 | Documented HIGH #5 as already fixed (getSafeEnv in critical fixes) |

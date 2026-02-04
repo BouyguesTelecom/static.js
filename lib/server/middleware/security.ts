@@ -5,8 +5,8 @@
 
 import helmet from "helmet";
 import cors from "cors";
-import { Express } from "express";
-import { isDevelopment } from "../index.js";
+import { Express, Request } from "express";
+import { CONFIG, isDevelopment } from "../config/index.js";
 
 /**
  * Security headers middleware using helmet
@@ -25,12 +25,69 @@ export const securityMiddleware = helmet({
 });
 
 /**
- * CORS configuration for development
- * Allows cross-origin requests in development mode
+ * Get allowed origins for CORS
+ * In development: allows localhost origins if none configured
+ * In production: only allows explicitly configured origins
+ */
+const getAllowedOrigins = (): string[] => {
+    if (CONFIG.CORS_ORIGINS.length > 0) {
+        return CONFIG.CORS_ORIGINS;
+    }
+
+    // Default localhost origins for development
+    if (isDevelopment) {
+        return [
+            `http://localhost:${CONFIG.PORT}`,
+            `http://127.0.0.1:${CONFIG.PORT}`,
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+        ];
+    }
+
+    // In production with no configured origins, deny all cross-origin requests
+    return [];
+};
+
+/**
+ * CORS origin validator
+ * Validates request origin against allowed origins list
+ */
+const corsOriginValidator = (
+    origin: string | undefined,
+    callback: (err: Error | null, allow?: boolean) => void
+): void => {
+    const allowedOrigins = getAllowedOrigins();
+
+    // Allow requests with no origin (same-origin, curl, etc.)
+    if (!origin) {
+        callback(null, true);
+        return;
+    }
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+    }
+
+    // In development, log rejected origins for debugging
+    if (isDevelopment) {
+        console.warn(`[CORS] Rejected origin: ${origin}. Allowed: ${allowedOrigins.join(', ') || 'none'}`);
+    }
+
+    callback(new Error('Not allowed by CORS'), false);
+};
+
+/**
+ * CORS configuration
+ * Uses origin validator for secure cross-origin request handling
  */
 export const corsMiddleware = cors({
-    origin: true,
+    origin: corsOriginValidator,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+    maxAge: 86400, // 24 hours preflight cache
 });
 
 /**
@@ -38,8 +95,5 @@ export const corsMiddleware = cors({
  */
 export const applySecurity = (app: Express): void => {
     app.use(securityMiddleware);
-    
-    if (isDevelopment) {
-        app.use(corsMiddleware);
-    }
+    app.use(corsMiddleware);
 };

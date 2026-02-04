@@ -46,10 +46,13 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
         pageData, // Pass pageData to AppComponent
     });
 
+    // Use JSfileName for script path if it's a string (for dynamic routes), otherwise use pageName
+    const scriptPath = typeof JSfileName === 'string' ? `/${JSfileName}.js` : `/${pageName}.js`;
+
     const htmlContent = template
         .replace("{{initialDatasId}}", initialDatasId)
         .replace("{{html}}", ReactDOMServer.renderToString(component))
-        .replace("{{scriptPath}}", `/${pageName}.js`);
+        .replace("{{scriptPath}}", scriptPath);
 
     // Return HTML string for runtime rendering or write to file for build time
     if (returnHtml) {

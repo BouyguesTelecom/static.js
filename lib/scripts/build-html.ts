@@ -100,8 +100,9 @@ async function main() {
                             if (slug) {
                                 const {props} = await getStaticProps(param);
                                 const pageName = page.pageName.replace(/\[.*?\]/, slug);
+                                // For dynamic routes, JS file is at parent level (e.g., partials/dynamic.js)
                                 const JSfileName =
-                                    injectJS && fileName.replace(/\[(.*?)\]/g, "_$1_");
+                                    injectJS && page.pageName.replace(/\/\[[^\]]+\]$/, '');
 
                                 createPage({
                                     data: props.data,
@@ -137,7 +138,7 @@ async function main() {
                     initialDatasId,
                     rootId,
                     pageName: page.pageName,
-                    JSfileName: injectJS && fileName,
+                    JSfileName: injectJS && page.pageName,
                     pageData,
                 });
 

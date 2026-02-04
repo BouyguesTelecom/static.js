@@ -198,7 +198,65 @@ export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevSe
                 }
             });
         } else if (pageName.includes('[') || pageName.includes(']')) {
-            // Dynamic routes are handled differently - could add logging here if needed
+            // Dynamic routes: register JS route at parent path (e.g., partials/dynamic/[id] -> /partials/dynamic.js)
+            const jsRoute = `/${pageName.replace(/\/\[[^\]]+\]$/, '')}.js`;
+            app.get(jsRoute, async (req: Request, res: Response): Promise<any> => {
+                try {
+                    const pageContent = fs.readFileSync(pagesCache[pageName], 'utf8');
+                    const firstLine = pageContent.split('\n')[0];
+
+                    if (firstLine.includes('no scripts')) {
+                        return res.status(404).json({
+                            success: false,
+                            error: 'Not Found',
+                            message: `JavaScript disabled for ${pageName}`,
+                        });
+                    }
+
+                    const stats = fs.statSync(pagesCache[pageName]);
+                    const fileModTime = stats.mtime.getTime();
+
+                    if (fileModTime > lastCacheInvalidation && viteServer.moduleGraph) {
+                        const moduleId = pagesCache[pageName];
+                        const module = viteServer.moduleGraph.getModuleById(moduleId);
+                        if (module) {
+                            viteServer.moduleGraph.invalidateModule(module);
+                        }
+                    }
+
+                    const transformStartTime = Date.now();
+                    const result = await viteServer.transformRequest(`${pagesCache[pageName]}?t=${transformStartTime}`, {
+                        ssr: false
+                    });
+
+                    if (result && result.code) {
+                        const crypto = await import('crypto');
+                        const codeHash = crypto.createHash('md5').update(result.code).digest('hex').slice(0, 8);
+
+                        res.setHeader('Content-Type', 'application/javascript');
+                        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+                        res.setHeader('Pragma', 'no-cache');
+                        res.setHeader('Expires', '0');
+                        res.setHeader('X-Timestamp', Date.now().toString());
+                        res.setHeader('X-Code-Hash', codeHash);
+                        res.setHeader('X-File-Modified', fileModTime.toString());
+                        return res.send(result.code);
+                    } else {
+                        return res.status(404).json({
+                            success: false,
+                            error: 'Not Found',
+                            message: `No JavaScript generated for ${pageName}`,
+                        });
+                    }
+                } catch (error) {
+                    console.error(`Error compiling JavaScript for ${pageName}:`, error);
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Internal Server Error',
+                        message: `Failed to compile JavaScript for ${pageName}`,
+                    });
+                }
+            });
         }
     });
 };

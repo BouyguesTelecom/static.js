@@ -194,8 +194,9 @@ async function processPageRuntime(
   }
 
   // Handle getStaticProps with or without dynamic params
+  const isDynamicRoute = Object.keys(params).length > 0;
   if (getStaticProps) {
-    if (Object.keys(params).length > 0) {
+    if (isDynamicRoute) {
       // Dynamic route with params
       const { props } = await getStaticProps({ params });
       data = props.data;
@@ -206,6 +207,11 @@ async function processPageRuntime(
     }
   }
 
+  // Determine JS file path: for dynamic routes, use parent path (e.g., partials/dynamic/1 -> partials/dynamic)
+  const jsFilePath = isDynamicRoute
+    ? page.pageName.replace(/\/[^/]+$/, '')
+    : page.pageName;
+
   // Generate HTML using createPage helper with returnHtml flag
   // Use dynamic import to load createPage from the template directory
   let htmlContent: string;
@@ -213,7 +219,7 @@ async function processPageRuntime(
     // Try to import createPage from the template's helpers directory
     const templateCreatePagePath = path.resolve(process.cwd(), "../../helpers/createPage.js");
     const { createPage: templateCreatePage } = await import(templateCreatePagePath);
-    
+
     htmlContent = templateCreatePage({
       data,
       AppComponent,
@@ -221,7 +227,7 @@ async function processPageRuntime(
       initialDatasId,
       rootId,
       pageName: page.pageName,
-      JSfileName: injectJS && fileName,
+      JSfileName: injectJS && jsFilePath,
       returnHtml: true,
     }) as string;
   } catch (error) {
@@ -233,7 +239,7 @@ async function processPageRuntime(
       initialDatasId,
       rootId,
       pageName: page.pageName,
-      JSfileName: injectJS && fileName,
+      JSfileName: injectJS && jsFilePath,
       returnHtml: true,
     }) as string;
   }

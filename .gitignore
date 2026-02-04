@@ -24,3 +24,5 @@ node_modules
 *.sln
 *.sw?
 cache
+
+.claude

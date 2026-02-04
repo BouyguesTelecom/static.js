@@ -23,6 +23,28 @@ export interface ServerConfig {
     FILE_WATCH_DEBOUNCE: number;
 }
 
+/**
+ * Type validators for each config key
+ * Keys in this object define the whitelist of allowed configuration keys
+ */
+const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean> = {
+    PORT: (v) => typeof v === 'number' && v > 0 && v <= 65535,
+    NODE_ENV: (v) => typeof v === 'string' && ['development', 'production', 'test'].includes(v),
+    PROJECT_ROOT: (v) => typeof v === 'string' && v.length > 0 && v.length < 1024,
+    BUILD_DIR: (v) => typeof v === 'string' && /^[a-zA-Z0-9_-]+$/.test(v) && v.length < 64,
+    REQUEST_TIMEOUT: (v) => typeof v === 'number' && v > 0 && v <= 300000,
+    BODY_SIZE_LIMIT: (v) => typeof v === 'string' && /^\d+(kb|mb|gb)?$/i.test(v),
+    RATE_LIMIT_WINDOW: (v) => typeof v === 'number' && v > 0 && v <= 86400000,
+    RATE_LIMIT_MAX: (v) => typeof v === 'number' && v > 0 && v <= 10000,
+    REVALIDATE_RATE_LIMIT_MAX: (v) => typeof v === 'number' && v > 0 && v <= 1000,
+    CACHE_MAX_AGE: (v) => typeof v === 'number' && v >= 0 && v <= 31536000,
+    HOT_RELOAD_ENABLED: (v) => typeof v === 'boolean',
+    WEBSOCKET_ENABLED: (v) => typeof v === 'boolean',
+    FILE_WATCHING_ENABLED: (v) => typeof v === 'boolean',
+    WEBSOCKET_PATH: (v) => typeof v === 'string' && /^\/[a-zA-Z0-9_-]*$/.test(v),
+    FILE_WATCH_DEBOUNCE: (v) => typeof v === 'number' && v >= 0 && v <= 10000,
+};
+
 export const DEFAULT_CONFIG: ServerConfig = {
     PORT: Number(process.env.PORT) || 3456,
     NODE_ENV: process.env.NODE_ENV || 'development',
@@ -44,7 +66,44 @@ export const DEFAULT_CONFIG: ServerConfig = {
 };
 
 /**
+ * Validate and sanitize user configuration
+ * Only allows whitelisted keys with valid types
+ */
+const validateUserConfig = (rawConfig: unknown): Partial<ServerConfig> => {
+    if (typeof rawConfig !== 'object' || rawConfig === null) {
+        console.warn('[Config] Invalid config format: expected object');
+        return {};
+    }
+
+    const validatedConfig: Partial<ServerConfig> = {};
+    const configObj = rawConfig as Record<string, unknown>;
+
+    for (const [key, value] of Object.entries(configObj)) {
+        // Check if key is allowed (exists in validators)
+        if (!(key in CONFIG_VALIDATORS)) {
+            console.warn(`[Config] Ignoring unknown config key: ${key}`);
+            continue;
+        }
+
+        const typedKey = key as keyof ServerConfig;
+        const validator = CONFIG_VALIDATORS[typedKey];
+
+        // Validate value type
+        if (!validator(value)) {
+            console.warn(`[Config] Invalid value for ${key}: ${JSON.stringify(value)}`);
+            continue;
+        }
+
+        // Type assertion is safe here because we validated the value
+        (validatedConfig as Record<string, unknown>)[key] = value;
+    }
+
+    return validatedConfig;
+};
+
+/**
  * Load user configuration from static.config.ts in the project root
+ * Validates all loaded values against a strict schema
  */
 const loadUserConfig = async (): Promise<Partial<ServerConfig>> => {
     const projectRoot = path.resolve(process.cwd());
@@ -56,9 +115,16 @@ const loadUserConfig = async (): Promise<Partial<ServerConfig>> => {
 
     try {
         const imported = await import(configPath);
-        const userConfig = imported.default || imported.CONFIG || {};
-        console.log('[Config] Loaded user configuration from static.config.ts');
-        return userConfig;
+        const rawConfig = imported.default || imported.CONFIG || {};
+
+        // Validate and sanitize the loaded configuration
+        const validatedConfig = validateUserConfig(rawConfig);
+
+        if (Object.keys(validatedConfig).length > 0) {
+            console.log('[Config] Loaded user configuration from static.config.ts');
+        }
+
+        return validatedConfig;
     } catch (error) {
         console.warn(`[Config] Failed to load static.config.ts: ${(error as Error).message}`);
         return {};

@@ -8,7 +8,7 @@ const Index: () => React.JSX.Element = () => {
     return (
         <>
             <h1 className="title">🚀 StaticJS</h1>
-            <button className="button is-primary" onClick={() => console.log("Home page button clicked!")}>
+            <button onClick={() => console.log("Home page button clicked!")}>
                 Click me!
             </button>
             <p>

@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { Request, Response } from "express";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,27 +6,41 @@ import path from "path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
+const isValidPath = (p: unknown): p is string =>
+  typeof p === "string" && /^[a-zA-Z0-9\/_-]+$/.test(p);
+
 export const revalidate = (req: Request, res: Response): void => {
   try {
-    const paths = req?.body?.paths || [];
-    const pathsArg = paths.length > 0 ? paths.join(" ") : "";
+    const rawPaths = req?.body?.paths;
+    const paths: string[] = Array.isArray(rawPaths)
+      ? rawPaths.filter(isValidPath)
+      : [];
+
     const cachePages = path.resolve(__dirname, "../../../helpers/cachePages.js");
     const buildHtmlConfig = path.resolve(__dirname, "../../../scripts/build-html.js");
 
-    const buildCommand = `NODE_TLS_REJECT_UNAUTHORIZED=0 node ${cachePages} ${
-      pathsArg && `${pathsArg}`
-    } && npx tsx ${buildHtmlConfig}`;
-
-    exec(buildCommand, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Exec error: ${error}`);
-        return;
-      }
-      if (!error) {
+    execFile(
+      "node",
+      [cachePages, ...paths],
+      { env: { ...process.env, NODE_TLS_REJECT_UNAUTHORIZED: "0" } },
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Cache pages error: ${error}`);
+          return;
+        }
         console.log(`stdout: ${stdout}`);
-        console.error(`stderr: ${stderr}`);
+        if (stderr) console.error(`stderr: ${stderr}`);
+
+        execFile("npx", ["tsx", buildHtmlConfig], (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Build HTML error: ${error}`);
+            return;
+          }
+          console.log(`stdout: ${stdout}`);
+          if (stderr) console.error(`stderr: ${stderr}`);
+        });
       }
-    });
+    );
 
     res
       .status(200)

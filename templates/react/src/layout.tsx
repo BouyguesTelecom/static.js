@@ -18,6 +18,10 @@ export const Layout = ({children, pageData}: LayoutProps) => {
         <head>
             <title>{pageData?.layout?.title || "Static JS"}</title>
             <meta name="description" content={pageData?.layout?.meta?.description || ""}/>
+            <link
+                rel="stylesheet"
+                href="https://assets.bouyguestelecom.fr/TRILOGY/trilogy-styles@4/default/trilogy.css"
+            />
         </head>
         <body>
         <div data-layout="main" className="container">

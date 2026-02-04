@@ -16,7 +16,7 @@ export const securityMiddleware = helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://assets.bouyguestelecom.fr"],
             scriptSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https:"],
         },

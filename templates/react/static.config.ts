@@ -1,9 +1,8 @@
-import {ServerConfig, CONFIG as DEFAULT_CONFIG} from "@bouygues-telecom/staticjs";
-
-const CONFIG: ServerConfig = {
-    ...DEFAULT_CONFIG,
-    PORT: 1234,
+/**
+ * StaticJS configuration overrides
+ * These values will be merged with the default configuration
+ */
+export default {
+    PORT: 5678,
     BUILD_DIR: '_build'
 };
-
-export default CONFIG;

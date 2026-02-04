@@ -7,8 +7,6 @@ import {CONFIG} from "../server/config/index.js";
 import {loadCacheEntries} from "../helpers/cachePages.js";
 import {findClosestLayout} from "../helpers/layoutDiscovery.js";
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
-
 async function loadJson(filePath: string) {
     const data = await fs.readFile(filePath, "utf-8");
     return JSON.parse(data);

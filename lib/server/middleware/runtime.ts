@@ -8,7 +8,9 @@ import { ViteDevServer } from "vite";
 import { renderPageRuntime } from "../../helpers/renderPageRuntime.js";
 import { isDevelopment } from "../index.js";
 import { CONFIG } from "../config/index.js";
+import { loadStylesCache } from "../../helpers/cachePages.js";
 import fs from "fs";
+import path from "path";
 
 interface CachedPage {
     content: string;
@@ -258,6 +260,86 @@ export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevSe
                 }
             });
         }
+    });
+};
+
+/**
+ * Register CSS serving middleware for each page with styles
+ */
+export const registerCSSMiddleware = (app: Express, viteServer: ViteDevServer): void => {
+    const stylesCache = loadStylesCache(CONFIG.PROJECT_ROOT);
+
+    // Register a route for each page's CSS file
+    Object.entries(stylesCache).forEach(([pageName, styleFiles]) => {
+        // Handle dynamic routes - use parent path
+        const cssRoute = `/${pageName.replace(/\/\[[^\]]+\]$/, "")}.css`;
+
+        app.get(cssRoute, async (req: Request, res: Response): Promise<any> => {
+            try {
+                const compiledStyles: string[] = [];
+
+                for (const styleFile of styleFiles) {
+                    // Check file modification time for cache invalidation
+                    const stats = fs.statSync(styleFile);
+                    const fileModTime = stats.mtime.getTime();
+
+                    if (fileModTime > lastCacheInvalidation && viteServer.moduleGraph) {
+                        const module = viteServer.moduleGraph.getModuleById(styleFile);
+                        if (module) {
+                            viteServer.moduleGraph.invalidateModule(module);
+                        }
+                    }
+
+                    // Transform the style file using Vite
+                    const transformStartTime = Date.now();
+                    const result = await viteServer.transformRequest(
+                        `${styleFile}?t=${transformStartTime}`,
+                        { ssr: false }
+                    );
+
+                    if (result && result.code) {
+                        // Vite transforms SCSS to JS that exports CSS
+                        // We need to extract the actual CSS content
+                        // For SCSS files, Vite returns CSS wrapped in JS
+                        const cssMatch = result.code.match(/__vite__css\s*=\s*"([^"]*)"/) ||
+                                         result.code.match(/export\s+default\s+"([^"]*)"/) ||
+                                         result.code.match(/"([^"]*\\n[^"]*)"/);
+
+                        if (cssMatch && cssMatch[1]) {
+                            // Unescape the CSS string
+                            const css = cssMatch[1]
+                                .replace(/\\n/g, "\n")
+                                .replace(/\\"/g, '"')
+                                .replace(/\\\\/g, "\\");
+                            compiledStyles.push(`/* Source: ${path.basename(styleFile)} */\n${css}`);
+                        }
+                    }
+                }
+
+                if (compiledStyles.length > 0) {
+                    const finalCss = compiledStyles.join("\n\n");
+
+                    res.setHeader("Content-Type", "text/css");
+                    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                    res.setHeader("Pragma", "no-cache");
+                    res.setHeader("Expires", "0");
+                    return res.send(finalCss);
+                } else {
+                    return res.status(404).json({
+                        success: false,
+                        error: "Not Found",
+                        message: `No CSS generated for ${pageName}`,
+                    });
+                }
+            } catch (error) {
+                console.error(`Error compiling CSS for ${pageName}:`, error);
+                return res.status(500).json({
+                    success: false,
+                    error: "Internal Server Error",
+                    message: `Failed to compile CSS for ${pageName}`,
+                });
+            }
+        });
     });
 };
 

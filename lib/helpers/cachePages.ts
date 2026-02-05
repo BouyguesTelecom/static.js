@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import {readPages} from "./readPages.js";
 import {CONFIG} from "../server/config/index.js";
+import {findStyleFiles} from "./styleDiscovery.js";
 
 const generateExcludedFiles = (entries: { [key: string]: string }) => {
     const excludedFiles: string[] = [];
@@ -34,6 +35,42 @@ const generateExcludedFiles = (entries: { [key: string]: string }) => {
         console.error("Error generating excluded files:", error);
         throw error; // Re-throw to handle it in the caller
     }
+};
+
+/**
+ * Generate styles cache for all pages
+ * Maps each page name to its collected style files (from root layout to page)
+ */
+const generateStylesCache = (entries: { [key: string]: string }, projectDir: string) => {
+    const stylesCache: { [key: string]: string[] } = {};
+    const rootDir = path.resolve(projectDir, "src");
+
+    Object.entries(entries).forEach(([pageName, pagePath]) => {
+        const styleFiles = findStyleFiles(pagePath, rootDir);
+        if (styleFiles.length > 0) {
+            stylesCache[pageName] = styleFiles;
+        }
+    });
+
+    try {
+        const cacheDir = path.resolve(projectDir, CONFIG.BUILD_DIR, "cache");
+        const stylesCachePath = path.resolve(cacheDir, "stylesCache.json");
+
+        if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir, {recursive: true});
+        }
+
+        fs.writeFileSync(
+            stylesCachePath,
+            JSON.stringify(stylesCache, null, 2),
+            "utf8"
+        );
+    } catch (error) {
+        console.error("Error generating styles cache:", error);
+        throw error;
+    }
+
+    return stylesCache;
 };
 
 /**
@@ -72,6 +109,7 @@ const generateCacheEntries = (projectDir: string, verbose: boolean = false) => {
     fs.writeFileSync(cacheFilePath, JSON.stringify(entries, null, 2), "utf8");
 
     generateExcludedFiles(entries);
+    generateStylesCache(entries, projectDir);
 
     if (verbose) {
         console.log(`   Generated cache file: ${cacheFilePath}`);
@@ -79,6 +117,25 @@ const generateCacheEntries = (projectDir: string, verbose: boolean = false) => {
     }
 
     return entries;
+};
+
+/**
+ * Load styles cache for a given project directory
+ * @param projectDir - The template directory path (e.g., "templates/react")
+ * @returns The styles cache object mapping page names to their style file paths
+ */
+export const loadStylesCache = (projectDir: string): { [key: string]: string[] } => {
+    const stylesCachePath = path.resolve(projectDir, CONFIG.BUILD_DIR, "cache/stylesCache.json");
+
+    try {
+        if (fs.existsSync(stylesCachePath)) {
+            return JSON.parse(fs.readFileSync(stylesCachePath, 'utf8'));
+        }
+    } catch (error) {
+        // Styles cache doesn't exist or is invalid, return empty object
+    }
+
+    return {};
 };
 
 /**

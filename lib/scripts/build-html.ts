@@ -4,7 +4,7 @@ import path from "path";
 import React from "react";
 import {createPage} from "../helpers/createPage.js";
 import {CONFIG} from "../server/config/index.js";
-import {loadCacheEntries} from "../helpers/cachePages.js";
+import {loadCacheEntries, loadStylesCache} from "../helpers/cachePages.js";
 import {findClosestLayout} from "../helpers/layoutDiscovery.js";
 
 async function loadJson(filePath: string) {
@@ -20,6 +20,7 @@ async function main() {
     const files = await loadJson(
         path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache/pagesCache.json")
     );
+    const stylesCache = loadStylesCache(CONFIG.PROJECT_ROOT);
 
     const processPage = async (page: { path: string; pageName: string }) => {
         try {
@@ -70,6 +71,7 @@ async function main() {
             const getStaticProps = pageModule?.getStaticProps;
             const getStaticPaths = pageModule?.getStaticPaths;
             const injectJS = !excludedJSFiles.includes(page.pageName);
+            const hasStyles = stylesCache[page.pageName] && stylesCache[page.pageName].length > 0;
 
             const rootId = crypto
                 .createHash("sha256")
@@ -104,6 +106,9 @@ async function main() {
                                 const JSfileName =
                                     injectJS && page.pageName.replace(/\/\[[^\]]+\]$/, '');
 
+                                // For dynamic routes, CSS file is at parent level like JS
+                                const CSSfileName = hasStyles && page.pageName.replace(/\/\[[^\]]+\]$/, '');
+
                                 createPage({
                                     data: props.data,
                                     AppComponent,
@@ -112,6 +117,7 @@ async function main() {
                                     rootId,
                                     pageName,
                                     JSfileName: JSfileName,
+                                    CSSfileName: CSSfileName,
                                     pageData,
                                 });
 
@@ -139,6 +145,7 @@ async function main() {
                     rootId,
                     pageName: page.pageName,
                     JSfileName: injectJS && page.pageName,
+                    CSSfileName: hasStyles && page.pageName,
                     pageData,
                 });
 

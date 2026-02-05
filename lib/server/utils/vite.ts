@@ -6,7 +6,7 @@
 import { createServer as createViteServer, ViteDevServer } from "vite";
 import { Express } from "express";
 import { isDevelopment } from "../config/index.js";
-import { registerJavaScriptMiddleware } from "../middleware/runtime.js";
+import { registerJavaScriptMiddleware, registerCSSMiddleware } from "../middleware/runtime.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -50,6 +50,9 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
             
             // Register JavaScript serving middleware after Vite server is ready
             registerJavaScriptMiddleware(app, viteServer);
+
+            // Register CSS serving middleware after Vite server is ready
+            registerCSSMiddleware(app, viteServer);
         } catch (error) {
             console.error('❌ Failed to initialize Vite server:', error);
             

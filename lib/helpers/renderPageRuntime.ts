@@ -6,6 +6,7 @@ import { createPage } from "./createPage.js";
 import { readPages } from "./readPages.js";
 import { CONFIG } from "../server/config/index.js";
 import { findClosestLayout } from "./layoutDiscovery.js";
+import { hasStyles } from "./styleDiscovery.js";
 
 const rootDir = path.resolve(process.cwd(), "./src");
 
@@ -212,6 +213,12 @@ async function processPageRuntime(
     ? page.pageName.replace(/\/[^/]+$/, '')
     : page.pageName;
 
+  // Check if this page has styles (from page or layouts)
+  const pageHasStyles = hasStyles(absolutePath, rootDir);
+  const cssFilePath = pageHasStyles
+    ? (isDynamicRoute ? page.pageName.replace(/\/[^/]+$/, '') : page.pageName)
+    : false;
+
   // Generate HTML using createPage helper with returnHtml flag
   // Use dynamic import to load createPage from the template directory
   let htmlContent: string;
@@ -228,6 +235,7 @@ async function processPageRuntime(
       rootId,
       pageName: page.pageName,
       JSfileName: injectJS && jsFilePath,
+      CSSfileName: cssFilePath,
       returnHtml: true,
     }) as string;
   } catch (error) {
@@ -240,6 +248,7 @@ async function processPageRuntime(
       rootId,
       pageName: page.pageName,
       JSfileName: injectJS && jsFilePath,
+      CSSfileName: cssFilePath,
       returnHtml: true,
     }) as string;
   }

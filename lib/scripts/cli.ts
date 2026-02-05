@@ -58,7 +58,15 @@ program
                 cwd: projectRoot
             });
 
-            console.log("\n2️⃣ Building assets with Vite...");
+            console.log("\n2️⃣ Building CSS from SCSS...");
+            const buildCssScript = path.join(libDir, 'scripts', 'build-css.js');
+            const cssBuildCommand = `npx tsx "${buildCssScript}"`;
+            execSync(cssBuildCommand, {
+                stdio: 'inherit',
+                cwd: projectRoot
+            });
+
+            console.log("\n3️⃣ Building assets with Vite...");
             const viteConfigPath = path.join(libDir, 'server', 'config', 'vite.config.js');
             const viteBuildCommand = `npx vite build --config "${viteConfigPath}"`;
             execSync(viteBuildCommand, {
@@ -66,7 +74,7 @@ program
                 cwd: projectRoot
             });
 
-            console.log("\n3️⃣ Cleanup...");
+            console.log("\n4️⃣ Cleanup...");
             const cacheDir = path.join(projectRoot, '_build', 'cache');
             if (fs.existsSync(cacheDir)) {
                 const cleanupCommand = process.platform === 'win32'

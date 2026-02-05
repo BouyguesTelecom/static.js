@@ -27,6 +27,17 @@ export default defineConfig(({ mode }) => {
                 "@": path.resolve(CONFIG.PROJECT_ROOT, "src")
             },
         },
+        css: {
+            // Enable CSS source maps for development
+            devSourcemap: true,
+            preprocessorOptions: {
+                scss: {
+                    // Use modern API and allow importing from src directory
+                    api: "modern-compiler",
+                    loadPaths: [path.resolve(CONFIG.PROJECT_ROOT, "src")],
+                },
+            },
+        },
         build: {
             outDir: path.resolve(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR),
             emptyOutDir: false,

@@ -12,6 +12,7 @@ interface IcreatePage {
     rootId: string,
     pageName: string,
     JSfileName: string | false,
+    CSSfileName?: string | false, // Optional CSS file name for style injection
     returnHtml?: boolean, // New optional parameter for runtime rendering
     pageData?: any, // New optional parameter for page data
 }
@@ -24,10 +25,12 @@ export const createPage = async ({
                                      rootId,
                                      pageName,
                                      JSfileName,
+                                     CSSfileName = false, // Default to false for backward compatibility
                                      returnHtml = false, // Default to false for backward compatibility
                                      pageData = {}, // Default to empty object
                                  }: IcreatePage): Promise<string | void> => {
     const template = `{{html}}
+${CSSfileName ? `<link rel="stylesheet" href="{{stylePath}}">` : ""}
 ${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}
 ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
 `;
@@ -48,11 +51,14 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
 
     // Use JSfileName for script path if it's a string (for dynamic routes), otherwise use pageName
     const scriptPath = typeof JSfileName === 'string' ? `/${JSfileName}.js` : `/${pageName}.js`;
+    // Use CSSfileName for style path if it's a string, otherwise use pageName
+    const stylePath = typeof CSSfileName === 'string' ? `/${CSSfileName}.css` : `/${pageName}.css`;
 
     const htmlContent = template
         .replace("{{initialDatasId}}", initialDatasId)
         .replace("{{html}}", ReactDOMServer.renderToString(component))
-        .replace("{{scriptPath}}", scriptPath);
+        .replace("{{scriptPath}}", scriptPath)
+        .replace("{{stylePath}}", stylePath);
 
     // Return HTML string for runtime rendering or write to file for build time
     if (returnHtml) {

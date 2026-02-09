@@ -23,8 +23,10 @@ jobs:
 
       - name: Publish React package on NPM 📦
         run: |
+          echo "Token prefix: ${NPM_TOKEN:0:4}"
           echo "Token length: ${#NPM_TOKEN}"
           npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN --location=user
+          npm whoami --registry https://registry.npmjs.org
           cd lib
           npm version ${{ github.event.release.tag_name }} --no-git-tag-version
           npm publish --access public --tag beta

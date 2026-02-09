@@ -27,6 +27,7 @@ jobs:
           cd lib
           echo "Publishing using NPM_REGISTRY_ACCESS_TOKEN secret"
           npm version ${{ github.event.release.tag_name }} --no-git-tag-version
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
           npm publish --access public --tag beta
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_ACCESS_TOKEN }}

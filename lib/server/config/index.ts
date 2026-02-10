@@ -108,14 +108,31 @@ const validateUserConfig = (rawConfig: unknown): Partial<ServerConfig> => {
 };
 
 /**
- * Load user configuration from static.config.ts in the project root
+ * Load user configuration from static.config.js or static.config.ts in the project root
  * Validates all loaded values against a strict schema
  */
 const loadUserConfig = async (): Promise<Partial<ServerConfig>> => {
     const projectRoot = path.resolve(process.cwd());
-    const configPath = path.join(projectRoot, 'static.config.ts');
 
-    if (!fs.existsSync(configPath)) {
+    // Check for config files in order of preference (JS first, then TS)
+    const configFiles = [
+        { path: path.join(projectRoot, 'static.config.js'), name: 'static.config.js' },
+        { path: path.join(projectRoot, 'static.config.mjs'), name: 'static.config.mjs' },
+        { path: path.join(projectRoot, 'static.config.ts'), name: 'static.config.ts' },
+    ];
+
+    let configPath: string | null = null;
+    let configName: string = '';
+
+    for (const config of configFiles) {
+        if (fs.existsSync(config.path)) {
+            configPath = config.path;
+            configName = config.name;
+            break;
+        }
+    }
+
+    if (!configPath) {
         return {};
     }
 
@@ -127,12 +144,20 @@ const loadUserConfig = async (): Promise<Partial<ServerConfig>> => {
         const validatedConfig = validateUserConfig(rawConfig);
 
         if (Object.keys(validatedConfig).length > 0) {
-            console.log('[Config] Loaded user configuration from static.config.ts');
+            console.log(`[Config] Loaded user configuration from ${configName}`);
         }
 
         return validatedConfig;
     } catch (error) {
-        console.warn(`[Config] Failed to load static.config.ts: ${(error as Error).message}`);
+        const errorMessage = (error as Error).message;
+
+        // Provide helpful message for TypeScript loading errors
+        if (configName.endsWith('.ts') && errorMessage.includes('Unknown file extension')) {
+            console.warn(`[Config] Cannot load ${configName} - TypeScript files require tsx runtime.`);
+            console.warn(`[Config] Either rename to static.config.js, or ensure tsx is installed.`);
+        } else {
+            console.warn(`[Config] Failed to load ${configName}: ${errorMessage}`);
+        }
         return {};
     }
 };

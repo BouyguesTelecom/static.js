@@ -5,10 +5,11 @@
 
 import { createServer as createViteServer, ViteDevServer } from "vite";
 import { Express } from "express";
-import { isDevelopment } from "../config/index.js";
+import { isDevelopment, CONFIG } from "../config/index.js";
 import { registerJavaScriptMiddleware, registerCSSMiddleware } from "../middleware/runtime.js";
+import { loadCacheEntries } from "../../helpers/cachePages.js";
+import { addHydrationCodePlugin } from "../config/vite.plugin.js";
 import path from "path";
-import { fileURLToPath } from "url";
 
 let viteServer: ViteDevServer | null = null;
 
@@ -22,16 +23,21 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
             // Vite server already initialized
             return viteServer;
         }
-        
+
         try {
-            // Initializing Vite server
-            
-            // Get the absolute path to the vite config file within the package
-            const __filename = fileURLToPath(import.meta.url);
-            const __dirname = path.dirname(__filename);
-            const configPath = path.resolve(__dirname, '../config/vite.config.js');
-            
+            // Load cache entries for build input
+            const entries = loadCacheEntries(CONFIG.PROJECT_ROOT);
+
+            // Sanitize entry keys for Rollup: strip dynamic segments [param]
+            const sanitizedEntries: Record<string, string> = Object.fromEntries(
+                Object.entries(entries as Record<string, string>).map(([key, value]) => [
+                    key.replace(/\/\[[^\]]+\]$/, ''),
+                    value
+                ])
+            );
+
             // Create Vite server for development mode JS compilation
+            // Using inline config to avoid path resolution issues when installed as a dependency
             viteServer = await createViteServer({
                 server: {
                     middlewareMode: true,
@@ -40,7 +46,33 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
                     }
                 },
                 appType: 'custom',
-                configFile: configPath
+                configFile: false, // Don't load external config file
+                resolve: {
+                    alias: {
+                        "@": path.resolve(CONFIG.PROJECT_ROOT, "src")
+                    },
+                },
+                css: {
+                    devSourcemap: true,
+                    preprocessorOptions: {
+                        scss: {
+                            api: "modern-compiler",
+                            loadPaths: [path.resolve(CONFIG.PROJECT_ROOT, "src")],
+                        },
+                    },
+                },
+                build: {
+                    outDir: path.resolve(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR),
+                    emptyOutDir: false,
+                    rollupOptions: {
+                        input: sanitizedEntries,
+                        output: {
+                            entryFileNames: "[name].js",
+                            chunkFileNames: "assets/vendor-[hash].js",
+                        },
+                    },
+                },
+                plugins: [addHydrationCodePlugin(entries)],
             });
             
             // Vite server initialized

@@ -101,7 +101,8 @@ program
             console.log('🚀 Starting development server...');
 
             const serverEntrypoint = path.join(libDir, 'server', 'index.js');
-            const devCommand = `NODE_ENV=development tsx ${serverEntrypoint}`;
+            // Use tsx to enable loading user's TypeScript/TSX files at runtime
+            const devCommand = `NODE_ENV=development npx tsx ${serverEntrypoint}`;
             execSync(devCommand, {
                 stdio: 'inherit',
                 cwd: projectRoot

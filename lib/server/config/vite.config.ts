@@ -1,8 +1,8 @@
 import path from "path";
 import {defineConfig, loadEnv} from "vite";
-import {addHydrationCodePlugin} from "./vite.plugin";
+import {addHydrationCodePlugin} from "./vite.plugin.js";
 import {loadCacheEntries} from "../../helpers/cachePages.js";
-import {CONFIG} from "./index";
+import {CONFIG} from "./index.js";
 
 // Load cache entries using the refactored helper function
 const entries = loadCacheEntries(CONFIG.PROJECT_ROOT);

@@ -143,15 +143,14 @@ export type {ServerConfig} from "./config/index.js";
 export {initializeViteServer} from "./utils/vite.js";
 export {setupProcessHandlers, startServer} from "./utils/startup.js";
 
-// Only start the server when this module is run directly (not when imported)
+// Start server when this module is run directly
 let app: Express | undefined;
 
-// Check if this module is being run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-    console.log('[Server] Module executed directly, starting server...');
+// Check if running as main entry point (works with node, tsx, and other runtimes)
+const isMainModule = process.argv[1]?.includes('server/index');
+
+if (isMainModule) {
     app = await startStaticJSServer();
-} else {
-    console.log('[Server] Module imported, not starting server automatically');
 }
 
 // Default export is the app creation function

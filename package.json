@@ -1,6 +1,6 @@
 {
   "name": "static.js",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "A static site generator with React support",
   "directories": {
     "lib": "lib",

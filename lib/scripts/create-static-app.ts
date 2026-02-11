@@ -19,6 +19,7 @@ async function createReactPowerStatic(projectName: string) {
     try {
         await downloadTemplate(`github:BouyguesTelecom/static.js/templates/react#main`, {
             force: true,
+            offline: false,
             provider: "github",
             cwd: dest,
             dir: `.`,

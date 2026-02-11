@@ -17,7 +17,7 @@ async function createReactPowerStatic(projectName: string) {
     spinner.start();
 
     try {
-        await downloadTemplate(`github:BouyguesTelecom/static.js/templates/react`, {
+        await downloadTemplate(`github:BouyguesTelecom/static.js/templates/react#main`, {
             force: true,
             provider: "github",
             cwd: dest,
@@ -35,6 +35,6 @@ async function createReactPowerStatic(projectName: string) {
     }
 }
 
-rl.question("Enter the name for your new project: ", (projectName) => {
+rl.question("🚀 Enter the name for your new project: ", (projectName) => {
     createReactPowerStatic(projectName);
 });

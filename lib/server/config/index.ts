@@ -4,6 +4,20 @@
  */
 import * as path from "node:path";
 import * as fs from "node:fs";
+import { loadEnv } from "vite";
+
+// Load environment variables from .env files into process.env
+// This ensures server-side code (like getStaticProps) can access env vars
+const projectRoot = path.resolve(process.cwd());
+const mode = process.env.NODE_ENV || 'development';
+const env = loadEnv(mode, projectRoot, '');
+
+// Merge loaded env vars into process.env (without overwriting existing vars)
+for (const [key, value] of Object.entries(env)) {
+    if (process.env[key] === undefined) {
+        process.env[key] = value;
+    }
+}
 
 export interface ServerConfig {
     PORT: number;

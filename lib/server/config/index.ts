@@ -37,6 +37,7 @@ export interface ServerConfig {
     FILE_WATCHING_ENABLED: boolean;
     WEBSOCKET_PATH: string;
     FILE_WATCH_DEBOUNCE: number;
+    SUPPRESS_MODULE_DIRECTIVE_WARNINGS: boolean;
 }
 
 /**
@@ -61,6 +62,7 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
     FILE_WATCHING_ENABLED: (v) => typeof v === 'boolean',
     WEBSOCKET_PATH: (v) => typeof v === 'string' && /^\/[a-zA-Z0-9_-]*$/.test(v),
     FILE_WATCH_DEBOUNCE: (v) => typeof v === 'number' && v >= 0 && v <= 10000,
+    SUPPRESS_MODULE_DIRECTIVE_WARNINGS: (v) => typeof v === 'boolean',
 };
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -83,6 +85,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
     FILE_WATCHING_ENABLED: process.env.NODE_ENV === 'development',
     WEBSOCKET_PATH: '/ws',
     FILE_WATCH_DEBOUNCE: 300, // milliseconds
+    SUPPRESS_MODULE_DIRECTIVE_WARNINGS: false
 };
 
 /**

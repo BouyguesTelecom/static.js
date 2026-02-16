@@ -42,6 +42,10 @@ export default defineConfig(({ mode }) => {
             outDir: path.resolve(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR),
             emptyOutDir: false,
             rollupOptions: {
+                onwarn(warning, warn) {
+                    if (CONFIG.SUPPRESS_MODULE_DIRECTIVE_WARNINGS && warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+                    warn(warning);
+                },
                 input: sanitizedEntries,
                 output: {
                     entryFileNames: "[name].js",

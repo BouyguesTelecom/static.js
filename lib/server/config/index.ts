@@ -4,6 +4,7 @@
  */
 import * as path from "node:path";
 import * as fs from "node:fs";
+import * as os from "node:os";
 import { loadEnv } from "vite";
 
 // Load environment variables from .env files into process.env
@@ -125,6 +126,26 @@ const validateUserConfig = (rawConfig: unknown): Partial<ServerConfig> => {
 };
 
 /**
+ * Transpile and load a TypeScript config file using esbuild (available via Vite)
+ */
+const loadTsConfigWithEsbuild = async (configPath: string): Promise<Record<string, unknown> | null> => {
+    try {
+        const esbuild = await import('esbuild');
+        const tsContent = fs.readFileSync(configPath, 'utf-8');
+        const { code } = await esbuild.transform(tsContent, { loader: 'ts', format: 'esm' });
+        const tempFile = path.join(os.tmpdir(), `static-config-${Date.now()}.mjs`);
+        fs.writeFileSync(tempFile, code);
+        try {
+            return await import(tempFile);
+        } finally {
+            fs.unlinkSync(tempFile);
+        }
+    } catch {
+        return null;
+    }
+};
+
+/**
  * Load user configuration from static.config.js or static.config.ts in the project root
  * Validates all loaded values against a strict schema
  */
@@ -154,7 +175,18 @@ const loadUserConfig = async (): Promise<Partial<ServerConfig>> => {
     }
 
     try {
-        const imported = await import(configPath);
+        let imported;
+
+        try {
+            imported = await import(configPath);
+        } catch (importError) {
+            // If direct import fails for a .ts file, try transpiling with esbuild
+            if (configName.endsWith('.ts')) {
+                imported = await loadTsConfigWithEsbuild(configPath);
+            }
+            if (!imported) throw importError;
+        }
+
         const rawConfig = imported.default || imported.CONFIG || {};
 
         // Validate and sanitize the loaded configuration
@@ -167,14 +199,7 @@ const loadUserConfig = async (): Promise<Partial<ServerConfig>> => {
         return validatedConfig;
     } catch (error) {
         const errorMessage = (error as Error).message;
-
-        // Provide helpful message for TypeScript loading errors
-        if (configName.endsWith('.ts') && errorMessage.includes('Unknown file extension')) {
-            console.warn(`[Config] Cannot load ${configName} - TypeScript files require tsx runtime.`);
-            console.warn(`[Config] Either rename to static.config.js, or ensure tsx is installed.`);
-        } else {
-            console.warn(`[Config] Failed to load ${configName}: ${errorMessage}`);
-        }
+        console.warn(`[Config] Failed to load ${configName}: ${errorMessage}`);
         return {};
     }
 };

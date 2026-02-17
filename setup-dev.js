@@ -38,7 +38,7 @@ function fixPermissions() {
     }
     
     // Check CLI script execute permissions
-    const cliScript = 'node_modules/@bouygues-telecom/staticjs/_build/scripts/cli.js';
+    const cliScript = 'node_modules/@bouygues-telecom/staticjs/_build/scripts/cli.mjs';
     if (fs.existsSync(cliScript)) {
         try {
             const stats = fs.statSync(cliScript);

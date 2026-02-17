@@ -1,13 +1,24 @@
 {
   "name": "@bouygues-telecom/staticjs",
-  "version": "1.0.7",
-  "type": "module",
-  "main": "./_build/server/index.js",
+  "version": "1.0.9",
+  "main": "./_build/server/index.mjs",
   "exports": {
-    ".": "./_build/server/index.js",
-    "./server": "./_build/server/index.js",
-    "./config": "./_build/server/config/index.js",
-    "./helpers": "./_build/helpers/cachePages.js"
+    ".": {
+      "types": "./_build/server/index.d.ts",
+      "default": "./_build/server/index.mjs"
+    },
+    "./server": {
+      "types": "./_build/server/index.d.ts",
+      "default": "./_build/server/index.mjs"
+    },
+    "./config": {
+      "types": "./_build/server/config/index.d.ts",
+      "default": "./_build/server/config/index.mjs"
+    },
+    "./helpers": {
+      "types": "./_build/helpers/cachePages.d.ts",
+      "default": "./_build/helpers/cachePages.mjs"
+    }
   },
   "files": [
     "_build",
@@ -15,13 +26,13 @@
     "README.md"
   ],
   "bin": {
-    "create-staticjs-app": "./_build/scripts/create-static-app.js",
-    "bt-staticjs": "./_build/scripts/cli.js",
-    "static": "./_build/scripts/cli.js",
-    "generate-test-multiapps": "./_build/scripts/generate-test-multiapps.js"
+    "create-staticjs-app": "./_build/scripts/create-static-app.mjs",
+    "bt-staticjs": "./_build/scripts/cli.mjs",
+    "static": "./_build/scripts/cli.mjs",
+    "generate-test-multiapps": "./_build/scripts/generate-test-multiapps.mjs"
   },
   "scripts": {
-    "build": "rm -rf _build && tsc && chmod +x _build/scripts/*.js && cp -r server/static _build/server/",
+    "build": "rm -rf _build && tsc && node scripts/post-build.mjs && chmod +x _build/scripts/*.mjs && cp -r server/static _build/server/",
     "dev": "npm run build && cd ../templates/react && npm run dev"
   },
   "dependencies": {

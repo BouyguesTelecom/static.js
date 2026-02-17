@@ -2,7 +2,6 @@
   "name": "examples-react",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
     "dev": "static dev",
     "build": "static build",

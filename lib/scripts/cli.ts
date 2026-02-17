@@ -51,7 +51,7 @@ program
             console.log('🔨 Building static site...');
 
             console.log("\n1️⃣ Building static HTML files from TSX...");
-            const buildHtmlScript = path.join(libDir, 'scripts', 'build-html.js');
+            const buildHtmlScript = path.join(libDir, 'scripts', 'build-html.mjs');
             const staticHtmlFilesBuildCommand = `npx tsx "${buildHtmlScript}"`;
             execSync(staticHtmlFilesBuildCommand, {
                 stdio: 'inherit',
@@ -59,7 +59,7 @@ program
             });
 
             console.log("\n2️⃣ Building CSS from SCSS...");
-            const buildCssScript = path.join(libDir, 'scripts', 'build-css.js');
+            const buildCssScript = path.join(libDir, 'scripts', 'build-css.mjs');
             const cssBuildCommand = `npx tsx "${buildCssScript}"`;
             execSync(cssBuildCommand, {
                 stdio: 'inherit',
@@ -67,7 +67,7 @@ program
             });
 
             console.log("\n3️⃣ Building assets with Vite...");
-            const viteConfigPath = path.join(libDir, 'server', 'config', 'vite.config.js');
+            const viteConfigPath = path.join(libDir, 'server', 'config', 'vite.config.mjs');
             const viteBuildCommand = `npx vite build --config "${viteConfigPath}"`;
             execSync(viteBuildCommand, {
                 stdio: 'inherit',
@@ -100,7 +100,7 @@ program
         try {
             console.log('🚀 Starting development server...');
 
-            const serverEntrypoint = path.join(libDir, 'server', 'index.js');
+            const serverEntrypoint = path.join(libDir, 'server', 'index.mjs');
             // Use tsx to enable loading user's TypeScript/TSX files at runtime
             const devCommand = `NODE_ENV=development npx tsx ${serverEntrypoint}`;
             execSync(devCommand, {

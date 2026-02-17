@@ -31,7 +31,7 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
             // Sanitize entry keys for Rollup: strip dynamic segments [param]
             const sanitizedEntries: Record<string, string> = Object.fromEntries(
                 Object.entries(entries as Record<string, string>).map(([key, value]) => [
-                    key.replace(/\/\[[^\]]+\]$/, ''),
+                    key.replace(/\[([^\]]+)\]/g, '$1'),
                     value
                 ])
             );

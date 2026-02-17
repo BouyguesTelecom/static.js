@@ -86,7 +86,7 @@ export async function renderPageRuntime(requestPath: string, params?: { [key: st
                     // Extract the parameter value from the matched groups
                     const paramValue = match[1];
                     if (paramValue) {
-                      matchedPage = { path: pagePath, pageName: testPath };
+                      matchedPage = { path: pagePath, pageName };
                       matchedParams[paramName] = paramValue;
                       break;
                     }
@@ -176,15 +176,17 @@ async function processPageRuntime(
     const getStaticPaths = pageModule?.getStaticPaths;
     const injectJS = !excludedJSFiles.includes(page.pageName);
 
+  // Replace [param] with param name so the hash matches the JS file path
+  const hashKey = page.pageName.replace(/\[([^\]]+)\]/g, '$1');
   const rootId = crypto
     .createHash("sha256")
-    .update(`app-${absolutePath}`)
+    .update(`app-${hashKey}`)
     .digest("hex")
     .slice(0, 10);
 
   const initialDatasId = crypto
     .createHash("sha256")
-    .update(`initial-data-${absolutePath}`)
+    .update(`initial-data-${hashKey}`)
     .digest("hex")
     .slice(0, 10);
 
@@ -208,15 +210,13 @@ async function processPageRuntime(
     }
   }
 
-  // Determine JS file path: for dynamic routes, use parent path (e.g., partials/dynamic/1 -> partials/dynamic)
-  const jsFilePath = isDynamicRoute
-    ? page.pageName.replace(/\/[^/]+$/, '')
-    : page.pageName;
+  // Determine JS file path: replace [param] with param name (e.g., guide-pratique/[category] -> guide-pratique/category)
+  const jsFilePath = page.pageName.replace(/\[([^\]]+)\]/g, '$1');
 
   // Check if this page has styles (from page or layouts)
   const pageHasStyles = hasStyles(absolutePath, rootDir);
   const cssFilePath = pageHasStyles
-    ? (isDynamicRoute ? page.pageName.replace(/\/[^/]+$/, '') : page.pageName)
+    ? page.pageName.replace(/\[([^\]]+)\]/g, '$1')
     : false;
 
   // Generate HTML using createPage helper with returnHtml flag

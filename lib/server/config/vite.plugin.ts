@@ -23,13 +23,14 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
             // Build started
         },
         transform(code: string, id: string) {
-            // Check if this is a page file
-            const isPageFile = Object.values(entries).includes(id);
+            // Check if this is a page file and find its page name
+            const pageEntry = Object.entries(entries).find(([, value]) => value === id);
 
-            if (!isPageFile) {
+            if (!pageEntry) {
                 return null;
             }
 
+            const pageName = pageEntry[0];
             const componentName = getDefaultExportFunctionName(code);
 
             if (!componentName) {
@@ -53,15 +54,17 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
             const importReactDOM = `import ReactDOM from 'react-dom/client';`;
             const importLayout = `import { Layout } from "${layoutImportPath.replace('.tsx', '')}";`;
 
+            // Replace [param] with param name so the hash matches between JS and HTML
+            const hashKey = pageName.replace(/\[([^\]]+)\]/g, '$1');
             const rootId = crypto
                 .createHash("sha256")
-                .update(`app-${id}`)
+                .update(`app-${hashKey}`)
                 .digest("hex")
                 .slice(0, 10);
 
             const initialDatasId = crypto
                 .createHash("sha256")
-                .update(`initial-data-${id}`)
+                .update(`initial-data-${hashKey}`)
                 .digest("hex")
                 .slice(0, 10);
 

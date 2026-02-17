@@ -11,7 +11,7 @@ const entries = loadCacheEntries(CONFIG.PROJECT_ROOT);
 // e.g., "partials/dynamic/[id]" -> "partials/dynamic"
 const sanitizedEntries: Record<string, string> = Object.fromEntries(
     Object.entries(entries as Record<string, string>).map(([key, value]) => [
-        key.replace(/\/\[[^\]]+\]$/, ''),
+        key.replace(/\[([^\]]+)\]/g, '$1'),
         value
     ])
 );

@@ -200,8 +200,8 @@ export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevSe
                 }
             });
         } else if (pageName.includes('[') || pageName.includes(']')) {
-            // Dynamic routes: register JS route at parent path (e.g., partials/dynamic/[id] -> /partials/dynamic.js)
-            const jsRoute = `/${pageName.replace(/\/\[[^\]]+\]$/, '')}.js`;
+            // Dynamic routes: register JS route with param name (e.g., partials/dynamic/[id] -> /partials/dynamic/id.js)
+            const jsRoute = `/${pageName.replace(/\[([^\]]+)\]/g, '$1')}.js`;
             app.get(jsRoute, async (req: Request, res: Response): Promise<any> => {
                 try {
                     const pageContent = fs.readFileSync(pagesCache[pageName], 'utf8');
@@ -271,8 +271,8 @@ export const registerCSSMiddleware = (app: Express, viteServer: ViteDevServer): 
 
     // Register a route for each page's CSS file
     Object.entries(stylesCache).forEach(([pageName, styleFiles]) => {
-        // Handle dynamic routes - use parent path
-        const cssRoute = `/${pageName.replace(/\/\[[^\]]+\]$/, "")}.css`;
+        // Handle dynamic routes - replace [param] with param name
+        const cssRoute = `/${pageName.replace(/\[([^\]]+)\]/g, '$1')}.css`;
 
         app.get(cssRoute, async (req: Request, res: Response): Promise<any> => {
             try {

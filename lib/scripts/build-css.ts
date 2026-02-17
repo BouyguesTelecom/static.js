@@ -64,7 +64,7 @@ async function buildCss(): Promise<void> {
             const finalCss = compiledStyles.join("\n\n");
 
             // Determine output path (handle dynamic routes)
-            const outputName = pageName.replace(/\/\[[^\]]+\]$/, "");
+            const outputName = pageName.replace(/\[([^\]]+)\]/g, '$1');
             const outputPath = path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, `${outputName}.css`);
 
             // Create directories if needed

@@ -73,15 +73,17 @@ async function main() {
             const injectJS = !excludedJSFiles.includes(page.pageName);
             const hasStyles = stylesCache[page.pageName] && stylesCache[page.pageName].length > 0;
 
+            // Replace [param] with param name so the hash matches between JS and HTML
+            const hashKey = page.pageName.replace(/\[([^\]]+)\]/g, '$1');
             const rootId = crypto
                 .createHash("sha256")
-                .update(`app-${absolutePath}`)
+                .update(`app-${hashKey}`)
                 .digest("hex")
                 .slice(0, 10);
 
             const initialDatasId = crypto
                 .createHash("sha256")
-                .update(`initial-data-${absolutePath}`)
+                .update(`initial-data-${hashKey}`)
                 .digest("hex")
                 .slice(0, 10);
 
@@ -102,12 +104,12 @@ async function main() {
                             if (slug) {
                                 const {props} = await getStaticProps(param);
                                 const pageName = page.pageName.replace(/\[.*?\]/, slug);
-                                // For dynamic routes, JS file is at parent level (e.g., partials/dynamic.js)
+                                // For dynamic routes, replace [param] with param name (e.g., guide-pratique/[category] -> guide-pratique/category)
                                 const JSfileName =
-                                    injectJS && page.pageName.replace(/\/\[[^\]]+\]$/, '');
+                                    injectJS && page.pageName.replace(/\[([^\]]+)\]/g, '$1');
 
-                                // For dynamic routes, CSS file is at parent level like JS
-                                const CSSfileName = hasStyles && page.pageName.replace(/\/\[[^\]]+\]$/, '');
+                                // For dynamic routes, CSS follows same pattern as JS
+                                const CSSfileName = hasStyles && page.pageName.replace(/\[([^\]]+)\]/g, '$1');
 
                                 createPage({
                                     data: props.data,

@@ -300,10 +300,10 @@ export const registerCSSMiddleware = (app: Express, viteServer: ViteDevServer): 
                     if (result && result.code) {
                         // Vite transforms SCSS to JS that exports CSS
                         // We need to extract the actual CSS content
-                        // For SCSS files, Vite returns CSS wrapped in JS
-                        const cssMatch = result.code.match(/__vite__css\s*=\s*"([^"]*)"/) ||
-                                         result.code.match(/export\s+default\s+"([^"]*)"/) ||
-                                         result.code.match(/"([^"]*\\n[^"]*)"/);
+                        // Use a regex that handles escaped quotes within the CSS string
+                        const cssMatch = result.code.match(/__vite__css\s*=\s*"((?:[^"\\]|\\.)*)"/) ||
+                                         result.code.match(/export\s+default\s+"((?:[^"\\]|\\.)*)"/) ||
+                                         result.code.match(/"((?:[^"\\]|\\.)*\\n(?:[^"\\]|\\.)*)"/);
 
                         if (cssMatch && cssMatch[1]) {
                             // Unescape the CSS string

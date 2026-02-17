@@ -69,6 +69,79 @@ your-project/
 └── static.config.ts    # Configuration
 ```
 
+## Configuration
+
+StaticJS is configured via a `static.config.ts` (or `.js` / `.mjs`) file at the root of your project.
+
+```typescript
+// static.config.ts
+export default {
+    PORT: 5678,
+    CORS_ORIGINS: ["https://example.com"],
+    CSP_DIRECTIVES: {
+        scriptSrc: ["https://cdn.example.com"],
+    },
+};
+```
+
+### Available options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `PORT` | `number` | `3456` | Server port |
+| `NODE_ENV` | `string` | `"development"` | Environment (`development`, `production`, `test`) |
+| `PROJECT_ROOT` | `string` | `process.cwd()` | Project root directory |
+| `BUILD_DIR` | `string` | `"_build"` | Output directory name |
+| `REQUEST_TIMEOUT` | `number` | `30000` | Request timeout in ms |
+| `BODY_SIZE_LIMIT` | `string` | `"10mb"` | Max request body size |
+| `RATE_LIMIT_WINDOW` | `number` | `900000` | Rate limit window in ms (15 min) |
+| `RATE_LIMIT_MAX` | `number` | `100` | Max requests per window |
+| `REVALIDATE_RATE_LIMIT_MAX` | `number` | `10` | Max revalidation requests per window |
+| `REVALIDATE_API_KEY` | `string` | `""` | API key for the revalidate endpoint (required in production) |
+| `CORS_ORIGINS` | `string[]` | `[]` | Allowed CORS origins |
+| `CACHE_MAX_AGE` | `number` | `86400` (prod) / `0` (dev) | Cache max-age in seconds |
+| `HOT_RELOAD_ENABLED` | `boolean` | `true` (dev) | Enable hot reload |
+| `WEBSOCKET_ENABLED` | `boolean` | `true` (dev) | Enable WebSocket server |
+| `FILE_WATCHING_ENABLED` | `boolean` | `true` (dev) | Enable file watcher |
+| `WEBSOCKET_PATH` | `string` | `"/ws"` | WebSocket endpoint path |
+| `FILE_WATCH_DEBOUNCE` | `number` | `300` | File watch debounce in ms |
+| `SUPPRESS_MODULE_DIRECTIVE_WARNINGS` | `boolean` | `false` | Suppress Vite `MODULE_LEVEL_DIRECTIVE` warnings |
+| `CSP_DIRECTIVES` | `Record<string, string[]>` | `{}` | Additional Content Security Policy sources (see below) |
+
+### Content Security Policy (CSP)
+
+StaticJS sets the following CSP defaults via [Helmet](https://helmetjs.github.io/):
+
+| Directive | Default sources |
+|-----------|----------------|
+| `defaultSrc` | `'self'` |
+| `scriptSrc` | `'self'` |
+| `styleSrc` | `'self'`, `'unsafe-inline'`, `https://assets.bouyguestelecom.fr` |
+| `imgSrc` | `'self'`, `data:`, `https:` |
+
+Use `CSP_DIRECTIVES` to add extra trusted sources. Values are **merged** with the defaults (`'self'` is always included):
+
+```typescript
+// static.config.ts
+export default {
+    CSP_DIRECTIVES: {
+        scriptSrc: ["https://assets.bouyguestelecom.fr", "https://cdn.example.com"],
+        fontSrc: ["https://fonts.gstatic.com"],
+        connectSrc: ["https://api.example.com"],
+    },
+};
+```
+
+This would produce the following CSP headers:
+
+```
+script-src 'self' https://assets.bouyguestelecom.fr https://cdn.example.com;
+font-src https://fonts.gstatic.com;
+connect-src https://api.example.com;
+```
+
+Any valid [CSP directive name](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#directives) can be used (camelCase): `defaultSrc`, `scriptSrc`, `styleSrc`, `imgSrc`, `connectSrc`, `fontSrc`, `frameSrc`, `mediaSrc`, `workerSrc`, etc.
+
 ## Revalidation API
 
 Rebuild specific pages without a full rebuild:

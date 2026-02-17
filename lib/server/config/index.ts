@@ -39,6 +39,7 @@ export interface ServerConfig {
     WEBSOCKET_PATH: string;
     FILE_WATCH_DEBOUNCE: number;
     SUPPRESS_MODULE_DIRECTIVE_WARNINGS: boolean;
+    CSP_DIRECTIVES: Record<string, string[]>;
 }
 
 /**
@@ -64,6 +65,10 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
     WEBSOCKET_PATH: (v) => typeof v === 'string' && /^\/[a-zA-Z0-9_-]*$/.test(v),
     FILE_WATCH_DEBOUNCE: (v) => typeof v === 'number' && v >= 0 && v <= 10000,
     SUPPRESS_MODULE_DIRECTIVE_WARNINGS: (v) => typeof v === 'boolean',
+    CSP_DIRECTIVES: (v) => typeof v === 'object' && v !== null && !Array.isArray(v) &&
+        Object.values(v as Record<string, unknown>).every(arr =>
+            Array.isArray(arr) && arr.every(s => typeof s === 'string')
+        ),
 };
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -86,7 +91,8 @@ export const DEFAULT_CONFIG: ServerConfig = {
     FILE_WATCHING_ENABLED: process.env.NODE_ENV === 'development',
     WEBSOCKET_PATH: '/ws',
     FILE_WATCH_DEBOUNCE: 300, // milliseconds
-    SUPPRESS_MODULE_DIRECTIVE_WARNINGS: false
+    SUPPRESS_MODULE_DIRECTIVE_WARNINGS: false,
+    CSP_DIRECTIVES: {}
 };
 
 /**

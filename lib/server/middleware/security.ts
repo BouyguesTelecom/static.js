@@ -9,17 +9,36 @@ import { Express, Request } from "express";
 import { CONFIG, isDevelopment } from "../config/index.js";
 
 /**
+ * Build CSP directives by merging defaults with user config.
+ * User-provided sources are appended to the defaults (not replaced).
+ */
+const buildCspDirectives = (): Record<string, string[]> => {
+    const defaults: Record<string, string[]> = {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://assets.bouyguestelecom.fr"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+    };
+
+    for (const [key, values] of Object.entries(CONFIG.CSP_DIRECTIVES)) {
+        if (defaults[key]) {
+            const merged = new Set([...defaults[key], ...values]);
+            defaults[key] = [...merged];
+        } else {
+            defaults[key] = values;
+        }
+    }
+
+    return defaults;
+};
+
+/**
  * Security headers middleware using helmet
  * Configures appropriate security headers for the application
  */
 export const securityMiddleware = helmet({
     contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://assets.bouyguestelecom.fr"],
-            scriptSrc: ["'self'"],
-            imgSrc: ["'self'", "data:", "https:"],
-        },
+        directives: buildCspDirectives(),
     },
     crossOriginEmbedderPolicy: false, // Allow embedding for development
 });

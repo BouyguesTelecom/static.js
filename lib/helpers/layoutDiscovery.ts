@@ -32,7 +32,7 @@ export function findClosestLayout(pagePath: string, rootDir: string): string | n
   }
   
   // Fallback to global layout if no layout.tsx found in the hierarchy
-  const globalLayoutPath = path.join(rootDir, "layout.tsx");
+  const globalLayoutPath = path.join(rootDir, "pages", "layout.tsx");
   if (fs.existsSync(globalLayoutPath)) {
     return globalLayoutPath;
   }

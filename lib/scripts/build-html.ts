@@ -27,7 +27,7 @@ async function main() {
             let data;
             const absolutePath = page.path;
             const pageModule = await import(absolutePath);
-            const appModule = await import(`${CONFIG.PROJECT_ROOT}/src/app.tsx`);
+            const appModule = await import(`${CONFIG.PROJECT_ROOT}/src/pages/app.tsx`);
             const fileName = path.basename(page.path, path.extname(page.path));
 
             // Load page data.json if it exists

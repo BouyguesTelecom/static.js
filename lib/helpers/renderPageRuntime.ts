@@ -158,7 +158,7 @@ async function processPageRuntime(
     }
     
     const layoutModule = await import(`${layoutPath}${cacheBuster}`);
-    const appModule = await import(`${rootDir}/app.tsx${cacheBuster}`);
+    const appModule = await import(`${rootDir}/pages/app.tsx${cacheBuster}`);
     const fileName = path.basename(page.path, path.extname(page.path));
 
     // Create a dynamic App component that uses the discovered layout

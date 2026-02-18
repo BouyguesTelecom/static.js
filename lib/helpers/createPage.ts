@@ -3,6 +3,7 @@ import path from "path";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import {CONFIG} from "../server/config/index.js";
+import {resetHeadElements, injectHeadIntoHtml} from "../components/HeadManager.js";
 
 interface IcreatePage {
     data: any,
@@ -54,11 +55,16 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     // Use CSSfileName for style path if it's a string, otherwise use pageName
     const stylePath = typeof CSSfileName === 'string' ? `/${CSSfileName}.css` : `/${pageName}.css`;
 
-    const htmlContent = template
-        .replace("{{initialDatasId}}", initialDatasId)
-        .replace("{{html}}", ReactDOMServer.renderToString(component))
-        .replace("{{scriptPath}}", scriptPath)
-        .replace("{{stylePath}}", stylePath);
+    // Reset head collector before rendering, then inject collected elements after
+    resetHeadElements();
+
+    const htmlContent = injectHeadIntoHtml(
+        template
+            .replace("{{initialDatasId}}", initialDatasId)
+            .replace("{{html}}", ReactDOMServer.renderToString(component))
+            .replace("{{scriptPath}}", scriptPath)
+            .replace("{{stylePath}}", stylePath)
+    );
 
     // Return HTML string for runtime rendering or write to file for build time
     if (returnHtml) {

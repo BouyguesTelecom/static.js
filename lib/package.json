@@ -18,6 +18,18 @@
     "./helpers": {
       "types": "./_build/helpers/cachePages.d.ts",
       "default": "./_build/helpers/cachePages.mjs"
+    },
+    "./head": {
+      "types": "./_build/components/Head.d.ts",
+      "default": "./_build/components/Head.mjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "server": ["./_build/server/index.d.ts"],
+      "config": ["./_build/server/config/index.d.ts"],
+      "helpers": ["./_build/helpers/cachePages.d.ts"],
+      "head": ["./_build/components/Head.d.ts"]
     }
   },
   "files": [

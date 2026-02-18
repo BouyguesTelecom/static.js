@@ -97,13 +97,19 @@ async function main() {
                 if (paths && Array.isArray(paths)) {
                     for (const param of paths) {
                         if (param && param.params) {
-                            // Extract parameter name from page name (e.g., "partials/dynamic/[id]" -> "id")
-                            const paramMatch = page.pageName.match(/\[([^\]]+)\]/);
-                            const paramKey = paramMatch ? paramMatch[1] : null;
-                            const slug = paramKey ? param.params[paramKey] : null;
-                            if (slug) {
+                            // Extract ALL parameter names from page name (e.g., "guide-pratique/[category]/[article]" -> ["category", "article"])
+                            const paramMatches = [...page.pageName.matchAll(/\[([^\]]+)\]/g)];
+                            const paramKeys = paramMatches.map(m => m[1]);
+
+                            // Check that all param values exist
+                            const allParamsPresent = paramKeys.length > 0 && paramKeys.every(key => param.params[key]);
+                            if (allParamsPresent) {
                                 const {props} = await getStaticProps(param);
-                                const pageName = page.pageName.replace(/\[.*?\]/, slug);
+                                // Replace each [param] with its actual value
+                                let pageName = page.pageName;
+                                for (const key of paramKeys) {
+                                    pageName = pageName.replace(`[${key}]`, param.params[key]);
+                                }
                                 // For dynamic routes, replace [param] with param name (e.g., guide-pratique/[category] -> guide-pratique/category)
                                 const JSfileName =
                                     injectJS && page.pageName.replace(/\[([^\]]+)\]/g, '$1');

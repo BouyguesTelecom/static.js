@@ -70,29 +70,39 @@ export async function renderPageRuntime(requestPath: string, params?: { [key: st
         if (!matchedPage) {
           for (const [pageName, pagePath] of Object.entries(pages)) {
             if (pageName.includes("[") && pageName.includes("]")) {
-              // Extract the dynamic parameter name
-              const paramMatch = pageName.match(/\[([^\]]+)\]/);
-              if (paramMatch) {
-                const paramName = paramMatch[1];
-                
+              // Extract ALL dynamic parameter names (e.g., "guide-pratique/[category]/[article]" -> ["category", "article"])
+              const paramMatches = [...pageName.matchAll(/\[([^\]]+)\]/g)];
+              const paramNames = paramMatches.map(m => m[1]);
+
+              if (paramNames.length > 0) {
                 // Try matching against multiple possible paths
                 for (const testPath of possiblePaths) {
-                  // Create a regex pattern from the page name
+                  // Create a regex pattern from the page name (each [param] becomes a capture group)
                   const regexPattern = pageName.replace(/\[([^\]]+)\]/g, '([^/]+)');
                   const regex = new RegExp(`^${regexPattern}$`);
-                  
+
                   const match = testPath.match(regex);
                   if (match) {
-                    // Extract the parameter value from the matched groups
-                    const paramValue = match[1];
-                    if (paramValue) {
+                    // Extract all parameter values from the matched groups
+                    let allValid = true;
+                    const extractedParams: { [key: string]: string } = {};
+                    for (let i = 0; i < paramNames.length; i++) {
+                      if (match[i + 1]) {
+                        extractedParams[paramNames[i]] = match[i + 1];
+                      } else {
+                        allValid = false;
+                        break;
+                      }
+                    }
+
+                    if (allValid) {
                       matchedPage = { path: pagePath, pageName };
-                      matchedParams[paramName] = paramValue;
+                      matchedParams = extractedParams;
                       break;
                     }
                   }
                 }
-                
+
                 if (matchedPage) break;
               }
             }

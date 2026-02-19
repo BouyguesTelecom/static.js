@@ -49,22 +49,21 @@ export const securityMiddleware = helmet({
  * In production: only allows explicitly configured origins
  */
 const getAllowedOrigins = (): string[] => {
+    // Always allow the server's own origin (needed for module script requests)
+    const selfOrigins = [
+        `http://localhost:${CONFIG.PORT}`,
+        `http://127.0.0.1:${CONFIG.PORT}`,
+    ];
+
     if (CONFIG.CORS_ORIGINS.length > 0) {
-        return CONFIG.CORS_ORIGINS;
+        return [...new Set([...selfOrigins, ...CONFIG.CORS_ORIGINS])];
     }
 
-    // Default localhost origins for development
     if (isDevelopment) {
-        return [
-            `http://localhost:${CONFIG.PORT}`,
-            `http://127.0.0.1:${CONFIG.PORT}`,
-            'http://localhost:3000',
-            'http://127.0.0.1:3000',
-        ];
+        return [...selfOrigins, 'http://localhost:3000', 'http://127.0.0.1:3000'];
     }
 
-    // In production with no configured origins, deny all cross-origin requests
-    return [];
+    return selfOrigins;
 };
 
 /**

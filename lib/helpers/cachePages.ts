@@ -192,21 +192,90 @@ export const loadCacheEntries = (projectDir: string, verbose: boolean = false) =
 };
 
 /**
- * Process CLI arguments to generate specific page entries
- * @param args - Command line arguments
+ * Resolve a URL path to its page directory, supporting dynamic [param] segments.
+ * e.g. "guide-pratique/forfaits-mobile" -> "guide-pratique/[category]"
+ * @returns The resolved route name and index.tsx path, or null if not found.
+ */
+const resolveDynamicRoute = (urlPath: string, pagesDir: string): { routeName: string; indexPath: string } | null => {
+    const segments = urlPath.split('/');
+    let currentDir = pagesDir;
+    const routeSegments: string[] = [];
+
+    for (const segment of segments) {
+        const exactPath = path.join(currentDir, segment);
+        if (fs.existsSync(exactPath) && fs.statSync(exactPath).isDirectory()) {
+            currentDir = exactPath;
+            routeSegments.push(segment);
+            continue;
+        }
+
+        // Look for a dynamic [param] directory
+        try {
+            const entries = fs.readdirSync(currentDir);
+            const dynamicDir = entries.find(
+                (e) => /^\[.+\]$/.test(e) && fs.statSync(path.join(currentDir, e)).isDirectory()
+            );
+            if (dynamicDir) {
+                currentDir = path.join(currentDir, dynamicDir);
+                routeSegments.push(dynamicDir);
+                continue;
+            }
+        } catch {
+            // Directory read failed
+        }
+
+        return null;
+    }
+
+    const indexPath = path.join(currentDir, "index.tsx");
+    if (fs.existsSync(indexPath)) {
+        return { routeName: routeSegments.join('/'), indexPath };
+    }
+
+    return null;
+};
+
+/**
+ * Process CLI arguments to generate specific page entries.
+ * Accepts bare page names (e.g. "guide-pratique"), dynamic route URLs
+ * (e.g. "guide-pratique/forfaits-mobile" -> resolves to "guide-pratique/[category]"),
+ * and explicit .tsx paths for backward compatibility.
+ * Multiple URLs mapping to the same dynamic route are deduplicated.
+ * @param args - Command line arguments (page names, URL paths, or .tsx paths)
  * @param pagesDir - Pages directory path
  * @returns Processed entries object
  */
 const processCliArgs = (args: string[], pagesDir: string) => {
-    return args
-        .filter((arg: string) => arg.endsWith(".tsx"))
-        .reduce((obj: { [key: string]: string }, tsxFile) => {
-            console.log(`Processing arg: ${tsxFile}`);
-            const relativePathWithoutExtension = tsxFile.replace(/\.tsx$/, "");
-            const fullPath = path.resolve(pagesDir, tsxFile);
-            obj[relativePathWithoutExtension] = fullPath;
-            return obj;
-        }, {});
+    const entries: { [key: string]: string } = {};
+
+    for (const arg of args) {
+        if (arg.endsWith(".tsx")) {
+            // Explicit .tsx path (legacy support)
+            const fullPath = path.resolve(pagesDir, arg);
+            if (fs.existsSync(fullPath)) {
+                entries[arg.replace(/\.tsx$/, "")] = fullPath;
+            } else {
+                console.warn(`Page file not found: ${fullPath}`);
+            }
+        } else {
+            // Try direct folder-based route first
+            const indexPath = path.resolve(pagesDir, arg, "index.tsx");
+            if (fs.existsSync(indexPath)) {
+                entries[arg] = indexPath;
+            } else {
+                // Try resolving as a dynamic route URL
+                const resolved = resolveDynamicRoute(arg, pagesDir);
+                if (resolved) {
+                    // Deduplicate: multiple URLs may map to the same dynamic route
+                    entries[resolved.routeName] = resolved.indexPath;
+                } else {
+                    console.warn(`Page not found: ${arg}`);
+                }
+            }
+        }
+    }
+
+    return entries;
 };
 
 /**

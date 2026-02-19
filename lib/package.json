@@ -1,6 +1,6 @@
 {
   "name": "@bouygues-telecom/staticjs",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "./_build/server/index.mjs",
   "exports": {
     ".": {
@@ -26,10 +26,18 @@
   },
   "typesVersions": {
     "*": {
-      "server": ["./_build/server/index.d.ts"],
-      "config": ["./_build/server/config/index.d.ts"],
-      "helpers": ["./_build/helpers/cachePages.d.ts"],
-      "head": ["./_build/components/Head.d.ts"]
+      "server": [
+        "./_build/server/index.d.ts"
+      ],
+      "config": [
+        "./_build/server/config/index.d.ts"
+      ],
+      "helpers": [
+        "./_build/helpers/cachePages.d.ts"
+      ],
+      "head": [
+        "./_build/components/Head.d.ts"
+      ]
     }
   },
   "files": [

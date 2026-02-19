@@ -7,18 +7,20 @@ import {CONFIG} from "../server/config/index.js";
 import {loadCacheEntries, loadStylesCache} from "../helpers/cachePages.js";
 import {findClosestLayout} from "../helpers/layoutDiscovery.js";
 
-async function loadJson(filePath: string) {
-    const data = await fs.readFile(filePath, "utf-8");
-    return JSON.parse(data);
+async function loadJson(filePath: string, fallback: any = null) {
+    try {
+        const data = await fs.readFile(filePath, "utf-8");
+        return JSON.parse(data);
+    } catch {
+        return fallback;
+    }
 }
 
 async function main() {
-    loadCacheEntries(CONFIG.PROJECT_ROOT);
-    const excludedJSFiles = await loadJson(
-        path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache/excludedFiles.json")
-    );
-    const files = await loadJson(
-        path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache/pagesCache.json")
+    const files = loadCacheEntries(CONFIG.PROJECT_ROOT, true);
+    const excludedJSFiles: string[] = await loadJson(
+        path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache/excludedFiles.json"),
+        []
     );
     const stylesCache = loadStylesCache(CONFIG.PROJECT_ROOT);
 

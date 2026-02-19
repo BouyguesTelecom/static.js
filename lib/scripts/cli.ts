@@ -50,6 +50,12 @@ program
         try {
             console.log('🔨 Building static site...');
 
+            // Clear stale cache to ensure a fresh full page scan
+            const cacheDir = path.join(projectRoot, '_build', 'cache');
+            if (fs.existsSync(cacheDir)) {
+                fs.rmSync(cacheDir, { recursive: true });
+            }
+
             console.log("\n1️⃣ Building static HTML files from TSX...");
             const buildHtmlScript = path.join(libDir, 'scripts', 'build-html.mjs');
             const staticHtmlFilesBuildCommand = `npx tsx "${buildHtmlScript}"`;
@@ -73,18 +79,6 @@ program
                 stdio: 'inherit',
                 cwd: projectRoot
             });
-
-            console.log("\n4️⃣ Cleanup...");
-            const cacheDir = path.join(projectRoot, '_build', 'cache');
-            if (fs.existsSync(cacheDir)) {
-                const cleanupCommand = process.platform === 'win32'
-                    ? `rmdir /s /q "${cacheDir}"`
-                    : `rm -rf "${cacheDir}"`;
-                execSync(cleanupCommand, {
-                    stdio: 'inherit',
-                    cwd: projectRoot
-                });
-            }
 
             console.log('\n✅ Build completed successfully!');
         } catch (error) {
@@ -117,24 +111,20 @@ program
     .command('start')
     .description('Start production server to serve built static files')
     .option('-p, --port <port>', 'Port to serve on', '3456')
-    .option('-h, --host <host>', 'Host to serve on', 'localhost')
     .action(async (options) => {
         try {
             console.log('🌐 Starting production server...');
-            
+
             const buildDir = path.join(projectRoot, '_build');
-            
+
             // Check if build directory exists
             if (!fs.existsSync(buildDir)) {
                 console.error('❌ Build directory not found. Please run "static build" first.');
                 process.exit(1);
             }
 
-            console.log(`📁 Serving files from: ${buildDir}`);
-            console.log(`🔗 Server running at: http://${options.host}:${options.port}`);
-            
-            // Use http-server to serve the built files
-            const startCommand = `npx http-server "${buildDir}" -p ${options.port} -a ${options.host} -c-1`;
+            const serverEntrypoint = path.join(libDir, 'server', 'index.mjs');
+            const startCommand = `NODE_ENV=production PORT=${options.port} npx tsx ${serverEntrypoint}`;
             execSync(startCommand, {
                 stdio: 'inherit',
                 cwd: projectRoot

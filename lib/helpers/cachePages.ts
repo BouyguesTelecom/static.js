@@ -300,6 +300,11 @@ export const runCli = (templateDir: string = ".", specificFiles?: string[]) => {
         }
 
         fs.writeFileSync(cacheFilePath, JSON.stringify(entries, null, 2), "utf8");
+
+        const projectDir = path.resolve(process.cwd(), templateDir);
+        generateExcludedFiles(entries);
+        generateStylesCache(entries, projectDir);
+
         console.log("Pages cached successfully.");
         return entries;
     } else {

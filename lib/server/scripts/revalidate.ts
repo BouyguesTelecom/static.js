@@ -1,9 +1,12 @@
-import { execFile } from "child_process";
+import { execFile as execFileCb } from "child_process";
+import { promisify } from "node:util";
 import { Request, Response } from "express";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import path from "path";
 import fs from "fs";
+
+const execFileAsync = promisify(execFileCb);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -86,7 +89,7 @@ const getSafeEnv = (): NodeJS.ProcessEnv => {
   };
 };
 
-export const revalidate = (req: Request, res: Response): void => {
+export const revalidate = async (req: Request, res: Response): Promise<void> => {
   try {
     const rawPaths = req?.body?.paths;
     const projectRoot = process.cwd();
@@ -110,34 +113,20 @@ export const revalidate = (req: Request, res: Response): void => {
 
     const cachePages = path.resolve(__dirname, "../../helpers/cachePages.mjs");
     const buildHtmlConfig = path.resolve(__dirname, "../../scripts/build-html.mjs");
+    const env = getSafeEnv();
 
-    execFile(
-      "node",
-      [cachePages, ...paths],
-      { env: getSafeEnv() },
-      (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Cache pages error: ${error}`);
-          return;
-        }
-        console.log(`stdout: ${stdout}`);
-        if (stderr) console.error(`stderr: ${stderr}`);
+    const cacheResult = await execFileAsync("node", [cachePages, ...paths], { env });
+    if (cacheResult.stdout) console.log(`stdout: ${cacheResult.stdout}`);
+    if (cacheResult.stderr) console.error(`stderr: ${cacheResult.stderr}`);
 
-        execFile("npx", ["tsx", buildHtmlConfig], { env: getSafeEnv() }, (error, stdout, stderr) => {
-          if (error) {
-            console.error(`Build HTML error: ${error}`);
-            return;
-          }
-          console.log(`stdout: ${stdout}`);
-          if (stderr) console.error(`stderr: ${stderr}`);
-        });
-      }
-    );
+    const buildResult = await execFileAsync("npx", ["tsx", buildHtmlConfig], { env });
+    if (buildResult.stdout) console.log(`stdout: ${buildResult.stdout}`);
+    if (buildResult.stderr) console.error(`stderr: ${buildResult.stderr}`);
 
     res
       .status(200)
       .send(
-        `Revalidation triggered, paths: ${
+        `Revalidation done, paths: ${
           paths.length > 0 ? paths.join(", ") : "all pages"
         } built!`
       );

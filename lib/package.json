@@ -1,6 +1,6 @@
 {
   "name": "@bouygues-telecom/staticjs",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "main": "./_build/server/index.mjs",
   "exports": {
     ".": {

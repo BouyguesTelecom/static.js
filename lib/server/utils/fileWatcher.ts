@@ -6,8 +6,9 @@
 import chokidar, { FSWatcher } from 'chokidar';
 import path from 'path';
 import { broadcastReload } from './websocket.js';
-import { isDevelopment } from '../config/index.js';
+import { CONFIG, isDevelopment } from '../config/index.js';
 import { invalidateRuntimeCache } from '../middleware/runtime.js';
+import { generateCacheEntries } from '../../helpers/cachePages.js';
 
 type ReloadType = 'style' | 'page' | 'full' | 'asset';
 type FileEvent = 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir';
@@ -68,21 +69,33 @@ const handleFileChange = (eventType: FileEvent, filePath: string): void => {
 
     // Set new timer
     debounceTimer = setTimeout(async () => {
-        const reloadType = getReloadType(filePath);
+        const isStructuralChange = eventType === 'add' || eventType === 'unlink';
+        // For structural changes (file created/deleted), force a page reload
+        // so the HTML is re-rendered with correct <link> and <script> tags
+        const reloadType = isStructuralChange ? 'page' : getReloadType(filePath);
         const relativePath = path.relative(process.cwd(), filePath);
-        
+
         // Invalidate runtime cache when source files change
         if (relativePath.includes('src/') || relativePath.includes('src\\')) {
+            // Regenerate caches on structural changes so they stay in sync
+            if (isStructuralChange) {
+                try {
+                    generateCacheEntries(CONFIG.PROJECT_ROOT);
+                } catch (error) {
+                    // Cache regeneration failed, continue with reload
+                }
+            }
+
             await invalidateRuntimeCache();
         }
-        
+
         // Broadcast reload message to WebSocket clients
         broadcastReload(reloadType, {
             file: relativePath,
             event: eventType,
             timestamp: Date.now()
         });
-        
+
         debounceTimer = null;
     }, DEBOUNCE_DELAY);
 };

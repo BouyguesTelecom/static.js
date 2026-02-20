@@ -79,7 +79,7 @@ const generateStylesCache = (entries: { [key: string]: string }, projectDir: str
  * @param verbose
  * @returns The generated cache entries object
  */
-const generateCacheEntries = (projectDir: string, verbose: boolean = false) => {
+export const generateCacheEntries = (projectDir: string, verbose: boolean = false) => {
     const pagesDir = path.resolve(projectDir, "src/pages");
     const cacheDir = path.resolve(projectDir, CONFIG.BUILD_DIR, "cache");
     const cacheFilePath = path.resolve(cacheDir, "pagesCache.json");

@@ -50,7 +50,7 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
     PORT: (v) => typeof v === 'number' && v > 0 && v <= 65535,
     NODE_ENV: (v) => typeof v === 'string' && ['development', 'production', 'test'].includes(v),
     PROJECT_ROOT: (v) => typeof v === 'string' && v.length > 0 && v.length < 1024,
-    BUILD_DIR: (v) => typeof v === 'string' && /^[a-zA-Z0-9_-]+$/.test(v) && v.length < 64,
+    BUILD_DIR: (v) => typeof v === 'string' && /^[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*$/.test(v) && v.length < 64,
     REQUEST_TIMEOUT: (v) => typeof v === 'number' && v > 0 && v <= 300000,
     BODY_SIZE_LIMIT: (v) => typeof v === 'string' && /^\d+(kb|mb|gb)?$/i.test(v),
     RATE_LIMIT_WINDOW: (v) => typeof v === 'number' && v > 0 && v <= 86400000,

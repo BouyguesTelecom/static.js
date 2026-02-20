@@ -1,65 +1,60 @@
 import fs from "fs";
 import path from "path";
+import {findClosestLayout} from "./layoutDiscovery.js";
 
 /**
- * Discovers all style files (style.scss or style.css) by walking up the directory tree
- * from the given page path. Returns files in order from root to page for proper CSS cascade.
+ * Find a style file in a directory with the given base name,
+ * preferring .scss over .css
+ */
+function findStyleFileByName(dir: string, baseName: string): string | null {
+  const scssPath = path.join(dir, `${baseName}.scss`);
+  const cssPath = path.join(dir, `${baseName}.css`);
+
+  if (fs.existsSync(scssPath)) return scssPath;
+  if (fs.existsSync(cssPath)) return cssPath;
+  return null;
+}
+
+/**
+ * Discovers all style files for a page, collecting:
+ * 1. global.scss/css from the pages root directory (applied everywhere)
+ * 2. layout.scss/css next to the closest layout.tsx (applied to all pages using that layout)
+ * 3. page.scss/css (or style.scss/css fallback) next to the page's index.tsx
+ *
+ * Returns files in cascade order: global -> layout -> page
  */
 export function findStyleFiles(pagePath: string, rootDir: string): string[] {
   const styleFiles: string[] = [];
-
-  // Get the directory containing the page
   const pageDir = path.dirname(pagePath);
+  const pagesDir = path.join(rootDir, "pages");
 
-  // Collect all directories from root to page
-  const directories: string[] = [];
-  let currentDir = pageDir;
-
-  while (currentDir.startsWith(rootDir) || currentDir === rootDir) {
-    directories.unshift(currentDir); // Add to beginning for root-first order
-
-    const parentDir = path.dirname(currentDir);
-    if (parentDir === currentDir) break; // Reached filesystem root
-    currentDir = parentDir;
+  // 1. Global styles: global.scss/css at pages root
+  const globalStyle = findStyleFileByName(pagesDir, "global");
+  if (globalStyle) {
+    styleFiles.push(globalStyle);
   }
 
-  // Also check the root src directory itself
-  if (!directories.includes(rootDir)) {
-    directories.unshift(rootDir);
-  }
-
-  // Check each directory for style files
-  for (const dir of directories) {
-    const styleFile = findStyleFileInDir(dir);
-    if (styleFile) {
-      styleFiles.push(styleFile);
+  // 2. Layout styles: layout.scss/css next to the closest layout.tsx
+  const layoutPath = findClosestLayout(pagePath, rootDir);
+  if (layoutPath) {
+    const layoutDir = path.dirname(layoutPath);
+    const layoutStyle = findStyleFileByName(layoutDir, "layout");
+    if (layoutStyle) {
+      styleFiles.push(layoutStyle);
     }
+  }
+
+  // 3. Page styles: page.scss/css next to index.tsx (with style.scss/css fallback)
+  const pageStyle = findStyleFileByName(pageDir, "page") || findStyleFileByName(pageDir, "style");
+  if (pageStyle) {
+    styleFiles.push(pageStyle);
   }
 
   return styleFiles;
 }
 
 /**
- * Finds a style file in a directory, preferring .scss over .css
- */
-function findStyleFileInDir(dir: string): string | null {
-  const scssPath = path.join(dir, "style.scss");
-  const cssPath = path.join(dir, "style.css");
-
-  // Prefer .scss over .css
-  if (fs.existsSync(scssPath)) {
-    return scssPath;
-  }
-
-  if (fs.existsSync(cssPath)) {
-    return cssPath;
-  }
-
-  return null;
-}
-
-/**
- * Checks if a page has any styles (either direct or inherited from layouts)
+ * Checks if a page has any styles (global, layout, or page-level)
  */
 export function hasStyles(pagePath: string, rootDir: string): boolean {
   return findStyleFiles(pagePath, rootDir).length > 0;

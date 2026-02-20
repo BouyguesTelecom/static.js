@@ -10,6 +10,7 @@ import {execSync} from 'child_process';
 import * as path from "node:path";
 import * as fs from "node:fs";
 import {fileURLToPath} from 'node:url';
+import {CONFIG} from '../server/config/index.js';
 
 const program = new Command();
 
@@ -51,7 +52,7 @@ program
             console.log('🔨 Building static site...');
 
             // Clear stale cache to ensure a fresh full page scan
-            const cacheDir = path.join(projectRoot, '_build', 'cache');
+            const cacheDir = path.join(projectRoot, CONFIG.BUILD_DIR, 'cache');
             if (fs.existsSync(cacheDir)) {
                 fs.rmSync(cacheDir, { recursive: true });
             }
@@ -115,7 +116,7 @@ program
         try {
             console.log('🌐 Starting production server...');
 
-            const buildDir = path.join(projectRoot, '_build');
+            const buildDir = path.join(projectRoot, CONFIG.BUILD_DIR);
 
             // Check if build directory exists
             if (!fs.existsSync(buildDir)) {

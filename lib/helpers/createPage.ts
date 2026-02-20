@@ -31,7 +31,6 @@ export const createPage = async ({
                                      pageData = {}, // Default to empty object
                                  }: IcreatePage): Promise<string | void> => {
     const template = `{{html}}
-${CSSfileName ? `<link rel="stylesheet" href="{{stylePath}}">` : ""}
 ${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}
 ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
 `;
@@ -58,13 +57,17 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     // Reset head collector before rendering, then inject collected elements after
     resetHeadElements();
 
-    const htmlContent = injectHeadIntoHtml(
+    let htmlContent = injectHeadIntoHtml(
         template
             .replace("{{initialDatasId}}", initialDatasId)
             .replace("{{html}}", ReactDOMServer.renderToString(component))
             .replace("{{scriptPath}}", scriptPath)
-            .replace("{{stylePath}}", stylePath)
     );
+
+    // Inject CSS link into <head> so the browser loads styles before rendering the body
+    if (CSSfileName) {
+        htmlContent = htmlContent.replace("</head>", `<link rel="stylesheet" href="${stylePath}"></head>`);
+    }
 
     // Return HTML string for runtime rendering or write to file for build time
     if (returnHtml) {

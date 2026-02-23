@@ -151,35 +151,35 @@ async function processPageRuntime(
       // data.json doesn't exist, use empty object
     }
     
-    // Discover the closest layout for this page
+    // Discover the closest layout for this page (optional)
     const layoutPath = findClosestLayout(absolutePath, rootDir);
-    if (!layoutPath) {
-      throw new Error(`No layout found for page ${page.pageName}`);
-    }
-    
-    const layoutModule = await import(`${layoutPath}${cacheBuster}`);
     const appModule = await import(`${rootDir}/pages/app.tsx${cacheBuster}`);
     const fileName = path.basename(page.path, path.extname(page.path));
 
-    // Create a dynamic App component that uses the discovered layout
-    const LayoutComponent = layoutModule.Layout;
-    
-    if (!LayoutComponent) {
-      throw new Error(`Layout component not found in ${layoutPath}. Make sure it exports 'Layout'.`);
-    }
-    
-    // Create a wrapper App component that uses the actual App component
-    const AppComponent = ({ Component, props }: { Component: React.FC; props: any }) => {
-      // Create a layout wrapper that accepts pageData
-      const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
-        return React.createElement(LayoutComponent, { pageData, children });
+    let AppComponent: React.FC<{ Component: React.FC; props: any }>;
+
+    if (layoutPath) {
+      const layoutModule = await import(`${layoutPath}${cacheBuster}`);
+      const LayoutComponent = layoutModule.Layout;
+
+      if (!LayoutComponent) {
+        throw new Error(`Layout component not found in ${layoutPath}. Make sure it exports 'Layout'.`);
+      }
+
+      AppComponent = ({ Component, props }: { Component: React.FC; props: any }) => {
+        const LayoutWrapper = ({ children }: { children: React.ReactNode }) => {
+          return React.createElement(LayoutComponent, { pageData, children });
+        };
+        return React.createElement(LayoutWrapper, {
+          children: React.createElement(appModule.App, { Component, props, pageData })
+        });
       };
-      
-      // Use the actual App component and wrap it with our layout
-      return React.createElement(LayoutWrapper, {
-        children: React.createElement(appModule.App, { Component, props, pageData })
-      });
-    };
+    } else {
+      // No layout: render with App component only
+      AppComponent = ({ Component, props }: { Component: React.FC; props: any }) => {
+        return React.createElement(appModule.App, { Component, props, pageData });
+      };
+    }
 
     const PageComponent = pageModule.default;
     const getStaticProps = pageModule?.getStaticProps;

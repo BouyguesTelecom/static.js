@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
     // console.log(`[Vite] Loaded environment variables for mode: ${mode}`, env);
 
     return {
+        base: CONFIG.BASE_PATH || '/',
         resolve: {
             alias: {
                 "@": path.resolve(CONFIG.PROJECT_ROOT, "src")

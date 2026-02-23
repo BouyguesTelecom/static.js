@@ -40,6 +40,7 @@ export interface ServerConfig {
     FILE_WATCH_DEBOUNCE: number;
     SUPPRESS_MODULE_DIRECTIVE_WARNINGS: boolean;
     CSP_DIRECTIVES: Record<string, string[]>;
+    BASE_PATH: string;
 }
 
 /**
@@ -69,6 +70,8 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
         Object.values(v as Record<string, unknown>).every(arr =>
             Array.isArray(arr) && arr.every(s => typeof s === 'string')
         ),
+    BASE_PATH: (v) => typeof v === 'string' && v.length <= 256 &&
+        (v === '' || (v.startsWith('/') && /^[a-zA-Z0-9/_-]+$/.test(v))),
 };
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -92,7 +95,8 @@ export const DEFAULT_CONFIG: ServerConfig = {
     WEBSOCKET_PATH: '/ws',
     FILE_WATCH_DEBOUNCE: 300, // milliseconds
     SUPPRESS_MODULE_DIRECTIVE_WARNINGS: false,
-    CSP_DIRECTIVES: {}
+    CSP_DIRECTIVES: {},
+    BASE_PATH: '',
 };
 
 /**
@@ -232,6 +236,14 @@ const mergeConfigs = (defaults: ServerConfig, userConfig: Partial<ServerConfig>)
     }
     if (userConfig.FILE_WATCHING_ENABLED === undefined) {
         merged.FILE_WATCHING_ENABLED = nodeEnv === 'development';
+    }
+
+    // Normalize BASE_PATH: strip trailing slashes, convert '/' to ''
+    if (merged.BASE_PATH) {
+        merged.BASE_PATH = merged.BASE_PATH.replace(/\/+$/, '');
+        if (merged.BASE_PATH === '') {
+            merged.BASE_PATH = '';
+        }
     }
 
     return merged;

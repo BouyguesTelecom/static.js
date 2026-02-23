@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Request, Response, NextFunction, Express } from 'express';
-import { isDevelopment } from '../config/index.js';
+import { isDevelopment, CONFIG } from '../config/index.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -75,7 +75,8 @@ export const hotReloadStaticMiddleware = (req: Request, res: Response, next: Nex
     }
 
     // Serve hot reload client script - handle this BEFORE any other middleware
-    if (req.path === '/hot-reload-client.js' || req.url === '/hot-reload-client.js') {
+    const hotReloadPath = `${CONFIG.BASE_PATH}/hot-reload-client.js`;
+    if (req.path === hotReloadPath || req.url === hotReloadPath) {
         console.log('[HotReload] Serving hot reload client script');
         const script = loadHotReloadScript();
         res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
@@ -115,7 +116,7 @@ export const hotReloadInjectionMiddleware = (req: Request, res: Response, next: 
             // Inject hot reload script
             const hotReloadScript = `
     <!-- Hot Reload Client Script (Development Only) -->
-    <script src="/hot-reload-client.js"></script>`;
+    <script src="${CONFIG.BASE_PATH}/hot-reload-client.js"></script>`;
 
             // Try different injection strategies
             let injected = false;

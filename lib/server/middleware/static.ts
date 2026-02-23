@@ -61,4 +61,21 @@ export const applyStatic = (app: Express): void => {
             },
         })(req, res, next);
     });
+
+    // When BASE_PATH is set, mount a second static handler so production requests
+    // like /statics/guide-pratique/page.js are served from _build/page.js
+    if (CONFIG.BASE_PATH) {
+        app.use(CONFIG.BASE_PATH, express.static(CONFIG.BUILD_DIR, {
+            maxAge: CONFIG.CACHE_MAX_AGE * 1000,
+            etag: true,
+            lastModified: true,
+            setHeaders: (res: Response, filePath: string) => {
+                const ext = extname(filePath).toLowerCase();
+                if (['.js', '.css', '.woff', '.woff2', '.ttf', '.eot'].includes(ext)) {
+                    res.setHeader('Cache-Control', `public, max-age=${CONFIG.CACHE_MAX_AGE}`);
+                }
+                res.setHeader('X-Content-Type-Options', 'nosniff');
+            },
+        }));
+    }
 };

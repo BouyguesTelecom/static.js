@@ -73,7 +73,9 @@ export const invalidateRuntimeCache = async (): Promise<void> => {
  */
 export const runtimeRenderingMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     // Only handle GET requests for pages, but skip static assets and JS files
-    if (req.method === 'GET' && !req.path.match(/\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/)) {
+    // Also skip requests under BASE_PATH — those are asset requests, not pages
+    if (req.method === 'GET' && !req.path.match(/\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/)
+        && !(CONFIG.BASE_PATH && req.path.startsWith(CONFIG.BASE_PATH + '/'))) {
         /**
          * Handle runtime rendering for development mode
          * Leverages renderPageRuntime's built-in page resolution and parameter handling
@@ -134,10 +136,12 @@ export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevSe
     const pagesCache: PagesCache = JSON.parse(fs.readFileSync(`./${CONFIG.BUILD_DIR}/cache/pagesCache.json`, 'utf8'));
     const excludedFiles: string[] = JSON.parse(fs.readFileSync(`./${CONFIG.BUILD_DIR}/cache/excludedFiles.json`, 'utf8'));
 
+    const basePath = CONFIG.BASE_PATH;
+
     // Register a route for each page's JS file (skip dynamic routes)
     Object.keys(pagesCache).forEach(pageName => {
         if (!excludedFiles.includes(pageName) && !pageName.includes('[') && !pageName.includes(']')) {
-            const jsRoute = `/${pageName}.js`;
+            const jsRoute = `${basePath}/${pageName}.js`;
             // Registering JS route for page
             app.get(jsRoute, async (req: Request, res: Response): Promise<any> => {
                 try {
@@ -202,7 +206,7 @@ export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevSe
             });
         } else if (pageName.includes('[') || pageName.includes(']')) {
             // Dynamic routes: register JS route with param name (e.g., partials/dynamic/[id] -> /partials/dynamic/id.js)
-            const jsRoute = `/${pageName.replace(/\[([^\]]+)\]/g, '$1')}.js`;
+            const jsRoute = `${basePath}/${pageName.replace(/\[([^\]]+)\]/g, '$1')}.js`;
             app.get(jsRoute, async (req: Request, res: Response): Promise<any> => {
                 try {
                     const pageContent = fs.readFileSync(pagesCache[pageName], 'utf8');
@@ -273,7 +277,10 @@ export const registerCSSMiddleware = (app: Express, viteServer: ViteDevServer): 
     const pagesDir = path.resolve(process.cwd(), "src/pages");
     const rootDir = path.resolve(process.cwd(), "src");
 
-    app.get(/^\/(.+)\.css$/, async (req: Request, res: Response, next: NextFunction): Promise<any> => {
+    const escapedBasePath = CONFIG.BASE_PATH.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const cssPattern = new RegExp(`^${escapedBasePath}/(.+)\\.css$`);
+
+    app.get(cssPattern, async (req: Request, res: Response, next: NextFunction): Promise<any> => {
         try {
             const pageName = req.params[0];
             if (!pageName) return next();

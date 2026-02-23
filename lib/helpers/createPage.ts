@@ -50,9 +50,10 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     });
 
     // Use JSfileName for script path if it's a string (for dynamic routes), otherwise use pageName
-    const scriptPath = typeof JSfileName === 'string' ? `/${JSfileName}.js` : `/${pageName}.js`;
+    const basePath = CONFIG.BASE_PATH;
+    const scriptPath = `${basePath}/${JSfileName || pageName}.js`;
     // Use CSSfileName for style path if it's a string, otherwise use pageName
-    const stylePath = typeof CSSfileName === 'string' ? `/${CSSfileName}.css` : `/${pageName}.css`;
+    const stylePath = `${basePath}/${CSSfileName || pageName}.css`;
 
     // Reset head collector before rendering, then inject collected elements after
     resetHeadElements();

@@ -187,10 +187,6 @@ export const revalidate = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
-    console.log(
-      `[Revalidate] Rebuilding: ${paths.length > 0 ? paths.join(", ") : "all pages"}`
-    );
-
     const cachePages = path.resolve(__dirname, "../../helpers/cachePages.mjs");
     const buildHtmlConfig = path.resolve(__dirname, "../../scripts/build-html.mjs");
     const env = getSafeEnv();

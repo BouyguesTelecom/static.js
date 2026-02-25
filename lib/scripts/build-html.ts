@@ -17,6 +17,9 @@ async function loadJson(filePath: string, fallback: any = null) {
 }
 
 async function main() {
+    // CLI args: specific paths to rebuild (empty = rebuild all)
+    const requestedPaths = process.argv.slice(2);
+
     const files = loadCacheEntries(CONFIG.PROJECT_ROOT, true);
     const excludedJSFiles: string[] = await loadJson(
         path.join(CONFIG.PROJECT_ROOT, CONFIG.BUILD_DIR, "cache/excludedFiles.json"),
@@ -110,12 +113,18 @@ async function main() {
                             // Check that all param values exist
                             const allParamsPresent = paramKeys.length > 0 && paramKeys.every(key => param.params[key]);
                             if (allParamsPresent) {
-                                const {props} = await getStaticProps(param);
                                 // Replace each [param] with its actual value
                                 let pageName = page.pageName;
                                 for (const key of paramKeys) {
                                     pageName = pageName.replace(`[${key}]`, param.params[key]);
                                 }
+
+                                // Skip this instance if specific paths were requested and it's not one of them
+                                if (requestedPaths.length > 0 && !requestedPaths.includes(pageName)) {
+                                    continue;
+                                }
+
+                                const {props} = await getStaticProps(param);
                                 // For dynamic routes, replace [param] with param name (e.g., guide-pratique/[category] -> guide-pratique/category)
                                 const JSfileName =
                                     injectJS && page.pageName.replace(/\[([^\]]+)\]/g, '$1');

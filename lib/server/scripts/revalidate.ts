@@ -101,17 +101,21 @@ const resolveRevalidateHandler = (projectRoot: string): string | null => {
   return null;
 };
 
+interface RevalidateHandler {
+  paths: string[];
+  afterRevalidate?: (req: Request, paths: string[]) => Promise<void>;
+}
+
 /**
- * Load and execute the consumer's revalidate handler.
- * Returns the paths array, or null if no handler exists.
+ * Import the consumer's revalidate module.
+ * Returns the module exports, or null if no handler file exists.
  */
-const loadRevalidatePaths = async (req: Request, projectRoot: string): Promise<string[] | null> => {
+const importRevalidateModule = async (projectRoot: string): Promise<Record<string, unknown> | null> => {
   const handlerPath = resolveRevalidateHandler(projectRoot);
   if (!handlerPath) return null;
 
-  let handler;
   try {
-    handler = await import(`${handlerPath}?t=${Date.now()}`);
+    return await import(`${handlerPath}?t=${Date.now()}`);
   } catch {
     if (handlerPath.endsWith('.ts')) {
       const esbuild = await import('esbuild');
@@ -120,28 +124,42 @@ const loadRevalidatePaths = async (req: Request, projectRoot: string): Promise<s
       const tempFile = path.join(os.tmpdir(), `static-revalidate-${Date.now()}.mjs`);
       fs.writeFileSync(tempFile, code);
       try {
-        handler = await import(tempFile);
+        return await import(tempFile);
       } finally {
         fs.unlinkSync(tempFile);
       }
-    } else {
-      throw new Error(`Failed to import revalidate handler: ${handlerPath}`);
     }
+    throw new Error(`Failed to import revalidate handler: ${handlerPath}`);
+  }
+};
+
+/**
+ * Load the consumer's revalidate handler.
+ * Calls the default export to get paths and extracts the optional afterRevalidate hook.
+ * Returns null if no handler file exists.
+ */
+const loadRevalidateHandler = async (req: Request, projectRoot: string): Promise<RevalidateHandler | null> => {
+  const mod = await importRevalidateModule(projectRoot);
+  if (!mod) return null;
+
+  const beforeFn = mod.beforeRevalidate;
+  let paths: string[] | undefined;
+
+  if (typeof beforeFn === 'function') {
+    const result = await beforeFn(req);
+    if (!Array.isArray(result)) {
+      console.warn('[Revalidate] beforeRevalidate must return a string[]');
+      return null;
+    }
+    paths = result;
   }
 
-  const fn = handler.default;
-  if (typeof fn !== 'function') {
-    console.warn('[Revalidate] src/revalidate must export a default function');
-    return null;
-  }
-
-  const result = await fn(req);
-  if (!Array.isArray(result)) {
-    console.warn('[Revalidate] src/revalidate default function must return a string[]');
-    return null;
-  }
-
-  return result;
+  return {
+    paths: paths ?? [],
+    afterRevalidate: typeof mod.afterRevalidate === 'function'
+      ? mod.afterRevalidate as RevalidateHandler['afterRevalidate']
+      : undefined,
+  };
 };
 
 export const revalidate = async (req: Request, res: Response): Promise<void> => {
@@ -149,8 +167,8 @@ export const revalidate = async (req: Request, res: Response): Promise<void> => 
     const projectRoot = process.cwd();
 
     // Try consumer's custom revalidate handler first, fall back to req.body.paths
-    const customPaths = await loadRevalidatePaths(req, projectRoot);
-    const rawPaths = customPaths ?? req?.body?.paths;
+    const handler = await loadRevalidateHandler(req, projectRoot);
+    const rawPaths = handler?.paths ?? req?.body?.paths;
 
     // Normalize and validate paths
     const normalizedPaths: string[] = Array.isArray(rawPaths)
@@ -169,6 +187,10 @@ export const revalidate = async (req: Request, res: Response): Promise<void> => 
       }
     }
 
+    console.log(
+      `[Revalidate] Rebuilding: ${paths.length > 0 ? paths.join(", ") : "all pages"}`
+    );
+
     const cachePages = path.resolve(__dirname, "../../helpers/cachePages.mjs");
     const buildHtmlConfig = path.resolve(__dirname, "../../scripts/build-html.mjs");
     const env = getSafeEnv();
@@ -177,9 +199,13 @@ export const revalidate = async (req: Request, res: Response): Promise<void> => 
     if (cacheResult.stdout) console.log(`stdout: ${cacheResult.stdout}`);
     if (cacheResult.stderr) console.error(`stderr: ${cacheResult.stderr}`);
 
-    const buildResult = await execFileAsync("npx", ["tsx", buildHtmlConfig], { env });
+    const buildResult = await execFileAsync("npx", ["tsx", buildHtmlConfig, ...paths], { env });
     if (buildResult.stdout) console.log(`stdout: ${buildResult.stdout}`);
     if (buildResult.stderr) console.error(`stderr: ${buildResult.stderr}`);
+
+    if (handler?.afterRevalidate) {
+      await handler.afterRevalidate(req, paths);
+    }
 
     res
       .status(200)

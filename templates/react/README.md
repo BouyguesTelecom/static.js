@@ -123,15 +123,20 @@ Create a `src/revalidate.ts` file to control which pages get rebuilt when `POST 
 // src/revalidate.ts
 import { Request } from "express";
 
-export default async function revalidate(req: Request): Promise<string[]> {
-    // Example: fetch updated pages from a CMS
+// Called before rebuild — return the paths to rebuild (empty = all pages)
+export async function beforeRevalidate(req: Request): Promise<string[]> {
     const res = await fetch("https://my-cms.com/updated-pages");
     const pages = await res.json();
     return pages.map((p: any) => p.slug);
 }
+
+// Called after rebuild — purge CDN, notify a webhook, etc. (optional)
+export async function afterRevalidate(req: Request, paths: string[]): Promise<void> {
+    console.log("Rebuilt:", paths);
+}
 ```
 
-> 💡 **Tip**: If `src/revalidate.ts` does not exist, StaticJS falls back to reading `req.body.paths` from the request body.
+> 💡 **Tip**: If `src/revalidate.ts` does not exist, StaticJS falls back to reading `req.body.paths` from the request body. Both exports are optional.
 
 ### Triggering revalidation
 

@@ -77,16 +77,12 @@ const isPathWithinPagesDir = (pageName: string, projectRoot: string): boolean =>
 };
 
 /**
- * Get safe environment variables for child processes
- * Only passes necessary, non-sensitive variables
+ * Get environment variables for child processes.
+ * Passes the full parent environment since execFileAsync already
+ * prevents shell injection and the child process is our own build script.
  */
 const getSafeEnv = (): NodeJS.ProcessEnv => {
-  return {
-    PATH: process.env.PATH,
-    HOME: process.env.HOME,
-    NODE_ENV: process.env.NODE_ENV,
-    // Add other safe variables as needed
-  };
+  return { ...process.env };
 };
 
 export const revalidate = async (req: Request, res: Response): Promise<void> => {

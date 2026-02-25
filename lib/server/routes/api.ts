@@ -216,5 +216,9 @@ async function getAvailablePages(): Promise<PageInfo[]> {
 export const registerApiRoutes = (app: Express): void => {
     app.get('/health', healthCheck);
     app.get('/api/pages', listPages);
-    app.post('/revalidate', revalidateLimiter, revalidateAuth, revalidateEndpoint);
+    app.post('/revalidate', revalidateLimiter, revalidateAuth, (req, _res, next) => {
+        // Revalidation spawns child processes and can take much longer than normal requests
+        req.setTimeout(CONFIG.REVALIDATE_REQUEST_TIMEOUT);
+        next();
+    }, revalidateEndpoint);
 };

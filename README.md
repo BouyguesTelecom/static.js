@@ -98,6 +98,7 @@ export default {
 | `RATE_LIMIT_MAX` | `number` | `100` | Max requests per window |
 | `REVALIDATE_RATE_LIMIT_MAX` | `number` | `10` | Max revalidation requests per window |
 | `REVALIDATE_API_KEY` | `string` | `""` | API key for the revalidate endpoint (required in production) |
+| `REVALIDATE_REQUEST_TIMEOUT` | `number` | `120000` | Revalidation request timeout in ms (2 min) |
 | `CORS_ORIGINS` | `string[]` | `[]` | Allowed CORS origins |
 | `CACHE_MAX_AGE` | `number` | `86400` (prod) / `0` (dev) | Cache max-age in seconds |
 | `HOT_RELOAD_ENABLED` | `boolean` | `true` (dev) | Enable hot reload |

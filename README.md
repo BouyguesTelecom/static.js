@@ -64,7 +64,7 @@ your-project/
 │   ├── pages/          # Your pages
 │   ├── components/     # Reusable components
 │   ├── styles/         # Style files
-│   └── app.tsx         # App entry point
+│   └── revalidate.ts   # Custom revalidation handler (optional)
 ├── _build/             # Generated static files
 └── static.config.ts    # Configuration
 ```
@@ -149,8 +149,26 @@ Rebuild specific pages without a full rebuild:
 ```bash
 curl -X POST http://localhost:3000/revalidate \
   -H "Content-Type: application/json" \
-  -d '{ "paths": ["home.tsx", "about.tsx"] }'
+  -d '{ "paths": ["home", "about"] }'
 ```
+
+### Custom revalidation handler
+
+For full control over which pages get rebuilt, create a `src/revalidate.ts` (or `.js` / `.mjs`) file in your project. It must export a default async function that receives the Express request and returns a `string[]` of page paths:
+
+```typescript
+// src/revalidate.ts
+import { Request } from "express";
+
+export default async function revalidate(req: Request): Promise<string[]> {
+    // Call a CMS, read req.body, or apply any custom logic
+    const res = await fetch("https://my-cms.com/updated-pages");
+    const pages = await res.json();
+    return pages.map((p: any) => p.slug);
+}
+```
+
+If the file does not exist, StaticJS falls back to `req.body.paths`.
 
 ## Development Setup (Monorepo)
 

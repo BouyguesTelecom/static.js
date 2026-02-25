@@ -115,12 +115,31 @@ npm run start
 
 StaticJS offers a unique **targeted revalidation** feature that allows rebuilding specific pages without rebuilding the entire project.
 
-### Basic syntax
+### Custom revalidation handler
+
+Create a `src/revalidate.ts` file to control which pages get rebuilt when `POST /revalidate` is called. The function receives the full Express request and must return a `string[]` of page paths:
+
+```typescript
+// src/revalidate.ts
+import { Request } from "express";
+
+export default async function revalidate(req: Request): Promise<string[]> {
+    // Example: fetch updated pages from a CMS
+    const res = await fetch("https://my-cms.com/updated-pages");
+    const pages = await res.json();
+    return pages.map((p: any) => p.slug);
+}
+```
+
+> 💡 **Tip**: If `src/revalidate.ts` does not exist, StaticJS falls back to reading `req.body.paths` from the request body.
+
+### Triggering revalidation
 
 ```bash
+# The body is forwarded to your src/revalidate.ts handler
 curl -X POST http://localhost:3000/revalidate \
   -H "Content-Type: application/json" \
-  -d '{ "paths": ["page.tsx"] }'
+  -d '{ "paths": ["home"] }'
 ```
 
 ## 📚 Examples
@@ -130,7 +149,7 @@ curl -X POST http://localhost:3000/revalidate \
 ```bash
 curl -X POST http://localhost:3000/revalidate \
   -H "Content-Type: application/json" \
-  -d '{ "paths": ["home.tsx"] }'
+  -d '{ "paths": ["home"] }'
 ```
 
 #### Revalidate multiple pages
@@ -138,7 +157,7 @@ curl -X POST http://localhost:3000/revalidate \
 ```bash
 curl -X POST http://localhost:3000/revalidate \
   -H "Content-Type: application/json" \
-  -d '{ "paths": ["home.tsx", "about.tsx", "contact.tsx"] }'
+  -d '{ "paths": ["home", "partials/page1", "ninja"] }'
 ```
 
 ## ⚙️ Configuration
@@ -151,10 +170,11 @@ your-project/
 │   ├── 📁 pages/          # Your pages
 │   ├── 📁 components/     # Reusable components
 │   ├── 📁 styles/         # Style files
-│   └── 📁 utils/          # Utilities
+│   ├── 📁 utils/          # Utilities
+│   └── 📄 revalidate.ts   # Custom revalidation handler (optional)
 ├── 📁 public/             # Static assets
 ├── 📄 package.json
-└── 📄 server.js           # StaticJS server
+└── 📄 static.config.ts    # StaticJS configuration
 ```
 
 ## 🛠️ Available scripts

@@ -5,6 +5,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import path from "path";
 import fs from "fs";
+import * as os from "node:os";
 
 const execFileAsync = promisify(execFileCb);
 
@@ -85,10 +86,71 @@ const getSafeEnv = (): NodeJS.ProcessEnv => {
   return { ...process.env };
 };
 
+/**
+ * Resolve the consumer's revalidate handler file.
+ * Checks for src/revalidate.ts, .js, .mjs in the project root.
+ */
+const resolveRevalidateHandler = (projectRoot: string): string | null => {
+  const extensions = ['.ts', '.js', '.mjs'];
+  for (const ext of extensions) {
+    const filePath = path.join(projectRoot, 'src', `revalidate${ext}`);
+    if (fs.existsSync(filePath)) {
+      return filePath;
+    }
+  }
+  return null;
+};
+
+/**
+ * Load and execute the consumer's revalidate handler.
+ * Returns the paths array, or null if no handler exists.
+ */
+const loadRevalidatePaths = async (req: Request, projectRoot: string): Promise<string[] | null> => {
+  const handlerPath = resolveRevalidateHandler(projectRoot);
+  if (!handlerPath) return null;
+
+  let handler;
+  try {
+    handler = await import(`${handlerPath}?t=${Date.now()}`);
+  } catch {
+    if (handlerPath.endsWith('.ts')) {
+      const esbuild = await import('esbuild');
+      const tsContent = fs.readFileSync(handlerPath, 'utf-8');
+      const { code } = await esbuild.transform(tsContent, { loader: 'ts', format: 'esm' });
+      const tempFile = path.join(os.tmpdir(), `static-revalidate-${Date.now()}.mjs`);
+      fs.writeFileSync(tempFile, code);
+      try {
+        handler = await import(tempFile);
+      } finally {
+        fs.unlinkSync(tempFile);
+      }
+    } else {
+      throw new Error(`Failed to import revalidate handler: ${handlerPath}`);
+    }
+  }
+
+  const fn = handler.default;
+  if (typeof fn !== 'function') {
+    console.warn('[Revalidate] src/revalidate must export a default function');
+    return null;
+  }
+
+  const result = await fn(req);
+  if (!Array.isArray(result)) {
+    console.warn('[Revalidate] src/revalidate default function must return a string[]');
+    return null;
+  }
+
+  return result;
+};
+
 export const revalidate = async (req: Request, res: Response): Promise<void> => {
   try {
-    const rawPaths = req?.body?.paths;
     const projectRoot = process.cwd();
+
+    // Try consumer's custom revalidate handler first, fall back to req.body.paths
+    const customPaths = await loadRevalidatePaths(req, projectRoot);
+    const rawPaths = customPaths ?? req?.body?.paths;
 
     // Normalize and validate paths
     const normalizedPaths: string[] = Array.isArray(rawPaths)

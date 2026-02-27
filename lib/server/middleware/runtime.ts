@@ -308,21 +308,21 @@ export const registerCSSMiddleware = (app: Express, viteServer: ViteDevServer): 
             const compiledStyles: string[] = [];
 
             for (const styleFile of styleFiles) {
-                // Check file modification time for Vite cache invalidation
-                const stats = fs.statSync(styleFile);
-                const fileModTime = stats.mtime.getTime();
-
-                if (fileModTime > lastCacheInvalidation && viteServer.moduleGraph) {
-                    const module = viteServer.moduleGraph.getModuleById(styleFile);
-                    if (module) {
-                        viteServer.moduleGraph.invalidateModule(module);
+                // Invalidate all Vite modules associated with this file
+                // so that transformRequest re-reads from disk
+                if (viteServer.moduleGraph) {
+                    const modules = viteServer.moduleGraph.getModulesByFile(styleFile);
+                    if (modules) {
+                        for (const mod of modules) {
+                            viteServer.moduleGraph.invalidateModule(mod);
+                        }
                     }
                 }
 
-                // Transform the style file using Vite
-                const transformStartTime = Date.now();
+                // Transform the style file using Vite (no ?t= to avoid
+                // creating orphan module entries in the graph)
                 const result = await viteServer.transformRequest(
-                    `${styleFile}?t=${transformStartTime}`,
+                    styleFile,
                     { ssr: false }
                 );
 

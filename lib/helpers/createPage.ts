@@ -1,9 +1,37 @@
 import fs from "fs";
 import path from "path";
+import { Writable } from "stream";
 import React from "react";
-import ReactDOMServer from "react-dom/server";
+import { renderToPipeableStream } from "react-dom/server";
 import {CONFIG} from "../server/config/index.js";
 import {resetHeadElements, injectHeadIntoHtml} from "../components/HeadManager.js";
+
+/**
+ * Render a React element to an HTML string, with Suspense support.
+ * Uses renderToPipeableStream with onAllReady so that all lazy/suspended
+ * components are resolved before the HTML is returned.
+ */
+function renderToStringAsync(element: React.ReactElement): Promise<string> {
+    return new Promise((resolve, reject) => {
+        let html = '';
+        const writable = new Writable({
+            write(chunk, _encoding, callback) {
+                html += chunk.toString();
+                callback();
+            },
+        });
+
+        const { pipe } = renderToPipeableStream(element, {
+            onAllReady() {
+                pipe(writable);
+                writable.on('finish', () => resolve(html));
+            },
+            onError(error) {
+                reject(error);
+            },
+        });
+    });
+}
 
 interface IcreatePage {
     data: any,
@@ -58,10 +86,12 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     // Reset head collector before rendering, then inject collected elements after
     resetHeadElements();
 
+    const renderedHtml = await renderToStringAsync(component);
+
     let htmlContent = injectHeadIntoHtml(
         template
             .replace("{{initialDatasId}}", initialDatasId)
-            .replace("{{html}}", ReactDOMServer.renderToString(component))
+            .replace("{{html}}", renderedHtml)
             .replace("{{scriptPath}}", scriptPath)
     );
 

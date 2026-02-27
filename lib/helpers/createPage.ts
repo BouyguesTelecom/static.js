@@ -31,7 +31,7 @@ export const createPage = async ({
                                      pageData = {}, // Default to empty object
                                  }: IcreatePage): Promise<string | void> => {
     const template = `{{html}}
-${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data)}</script>` : ""}
+${data ? `<script id=initial-data-{{initialDatasId}} type="application/json">${JSON.stringify(data).replace(/</g, "\\u003c")}</script>` : ""}
 ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
 `;
 

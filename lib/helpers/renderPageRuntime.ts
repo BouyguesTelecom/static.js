@@ -1,12 +1,23 @@
 import fs from "fs/promises";
 import crypto from "node:crypto";
 import path from "path";
+import Module from "node:module";
 import React from "react";
 import { createPage } from "./createPage.js";
 import { readPages } from "./readPages.js";
 import { CONFIG } from "../server/config/index.js";
 import { findClosestLayout } from "./layoutDiscovery.js";
 import { hasStyles } from "./styleDiscovery.js";
+
+// Register a no-op handler for CSS files so that Node.js doesn't try to parse
+// them as JavaScript when a third-party library (e.g. trilogy-react) requires one.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const extensions: Record<string, any> = (Module as any)._extensions;
+for (const ext of ['.css', '.scss', '.sass', '.less']) {
+    if (!extensions[ext]) {
+        extensions[ext] = () => {};
+    }
+}
 
 const rootDir = path.resolve(process.cwd(), "./src");
 

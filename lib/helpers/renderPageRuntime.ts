@@ -21,6 +21,27 @@ for (const ext of ['.css', '.scss', '.sass', '.less']) {
 
 const rootDir = path.resolve(process.cwd(), "./src");
 
+// Use CJS require() for loading page modules instead of ESM import().
+// ESM import() caches modules internally with no way to clear the cache,
+// which causes stale SSR output on file changes. CJS require.cache CAN be
+// cleared, so we clear all source files before each render to ensure fresh content.
+const nodeRequire = Module.createRequire(path.resolve(process.cwd(), '_placeholder.js'));
+
+function clearSourceModuleCache() {
+    const srcDir = path.resolve(process.cwd(), 'src');
+    if (nodeRequire.cache) {
+        for (const key of Object.keys(nodeRequire.cache)) {
+            if (key.startsWith(srcDir)) {
+                delete nodeRequire.cache[key];
+            }
+        }
+    }
+}
+
+function loadModule(modulePath: string) {
+    return nodeRequire(modulePath);
+}
+
 async function loadJson(filePath: string) {
   try {
     const data = await fs.readFile(filePath, "utf-8");
@@ -143,34 +164,34 @@ async function processPageRuntime(
 ): Promise<string> {
   let data;
   const absolutePath = page.path;
-  
-  // Add cache busting to avoid module caching issues in development
-  const cacheBuster = `?t=${Date.now()}`;
-  
+
+  // Clear CJS module cache for all source files to ensure fresh content.
+  clearSourceModuleCache();
+
   try {
-    const pageModule = await import(`${absolutePath}${cacheBuster}`);
-    
+    const pageModule = loadModule(absolutePath);
+
     // Load page data.json if it exists
     const pageDir = path.dirname(absolutePath);
     const dataJsonPath = path.join(pageDir, 'data.json');
     let pageData = {};
-    
+
     try {
       const dataContent = await fs.readFile(dataJsonPath, 'utf-8');
       pageData = JSON.parse(dataContent);
     } catch (error) {
       // data.json doesn't exist, use empty object
     }
-    
+
     // Discover the closest layout for this page (optional)
     const layoutPath = findClosestLayout(absolutePath, rootDir);
-    const appModule = await import(`${rootDir}/pages/app.tsx${cacheBuster}`);
+    const appModule = loadModule(`${rootDir}/pages/app.tsx`);
     const fileName = path.basename(page.path, path.extname(page.path));
 
     let AppComponent: React.FC<{ Component: React.FC; props: any }>;
 
     if (layoutPath) {
-      const layoutModule = await import(`${layoutPath}${cacheBuster}`);
+      const layoutModule = loadModule(layoutPath);
       const LayoutComponent = layoutModule.Layout;
 
       if (!LayoutComponent) {

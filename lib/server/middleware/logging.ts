@@ -5,10 +5,23 @@
 
 import { Request, Response, NextFunction, Express } from "express";
 
+const NOISY_PREFIXES = [
+    '/node_modules/',
+    '/src/',
+    '/@vite/',
+    '/@id/',
+    '/statics/',
+    '/.well-known/',
+];
+
 /**
  * Request logging middleware with timestamps and details
  */
 export const loggingMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+    if (!process.env.VERBOSE && NOISY_PREFIXES.some(p => req.url.startsWith(p))) {
+        return next();
+    }
+
     const timestamp = new Date().toISOString();
     // Log response time
     const startTime = Date.now();

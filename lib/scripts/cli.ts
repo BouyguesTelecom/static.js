@@ -91,13 +91,15 @@ program
 program
     .command('dev')
     .description('Start development server')
-    .action(async () => {
+    .option('-v, --verbose', 'Show all request logs')
+    .action(async (options) => {
         try {
             console.log('🚀 Starting development server...');
 
             const serverEntrypoint = path.join(libDir, 'server', 'index.mjs');
             // Use tsx to enable loading user's TypeScript/TSX files at runtime
-            const devCommand = `NODE_ENV=development npx tsx ${serverEntrypoint}`;
+            const verbose = options.verbose ? 'VERBOSE=true ' : '';
+            const devCommand = `NODE_ENV=development ${verbose}npx tsx ${serverEntrypoint}`;
             execSync(devCommand, {
                 stdio: 'inherit',
                 cwd: projectRoot

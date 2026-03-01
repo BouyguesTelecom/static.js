@@ -23,6 +23,15 @@ Starts the development server with hot reload.
 static dev
 ```
 
+Options:
+- `-v, --verbose`: Show all request logs (Vite internals, bundled assets, browser probes). Without this flag, only page-level requests are logged.
+
+Examples:
+```bash
+static dev              # Quiet logs (page requests only)
+static dev --verbose    # Full request logs
+```
+
 This command starts a development server with:
 - Hot module replacement
 - File watching

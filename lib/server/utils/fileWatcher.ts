@@ -15,6 +15,7 @@ type FileEvent = 'add' | 'change' | 'unlink' | 'addDir' | 'unlinkDir';
 
 let watcher: FSWatcher | null = null;
 let debounceTimer: NodeJS.Timeout | null = null;
+let pendingStructuralChange = false;
 const DEBOUNCE_DELAY = 300; // 300ms debounce
 
 /**
@@ -67,9 +68,16 @@ const handleFileChange = (eventType: FileEvent, filePath: string): void => {
         clearTimeout(debounceTimer);
     }
 
+    // Track structural changes (add/delete) across the debounce window so that
+    // a rapid 'add' followed by 'change' still triggers a full page reload
+    if (eventType === 'add' || eventType === 'unlink') {
+        pendingStructuralChange = true;
+    }
+
     // Set new timer
     debounceTimer = setTimeout(async () => {
-        const isStructuralChange = eventType === 'add' || eventType === 'unlink';
+        const isStructuralChange = pendingStructuralChange;
+        pendingStructuralChange = false;
         // For structural changes (file created/deleted), force a page reload
         // so the HTML is re-rendered with correct <link> and <script> tags
         const reloadType = isStructuralChange ? 'page' : getReloadType(filePath);

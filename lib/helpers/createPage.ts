@@ -95,9 +95,17 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
             .replace("{{scriptPath}}", scriptPath)
     );
 
-    // Inject CSS link into <head> so the browser loads styles before rendering the body
+    // Inject CSS link so the browser loads styles before rendering the body
     if (CSSfileName) {
-        htmlContent = htmlContent.replace("</head>", `<link rel="stylesheet" href="${stylePath}"></head>`);
+        const cssLink = `<link rel="stylesheet" href="${stylePath}">`;
+        if (htmlContent.includes('</head>')) {
+            htmlContent = htmlContent.replace("</head>", `${cssLink}</head>`);
+        } else if (htmlContent.includes('<body')) {
+            htmlContent = htmlContent.replace(/<body([^>]*)>/, `<body$1>${cssLink}`);
+        } else {
+            // Layout without <head>/<body> (e.g. partial layouts): prepend the link
+            htmlContent = cssLink + htmlContent;
+        }
     }
 
     // Return HTML string for runtime rendering or write to file for build time

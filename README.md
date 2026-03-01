@@ -100,6 +100,7 @@ export default {
 | `REVALIDATE_API_KEY` | `string` | `""` | API key for the revalidate endpoint (required in production) |
 | `REVALIDATE_REQUEST_TIMEOUT` | `number` | `120000` | Revalidation request timeout in ms (2 min) |
 | `CORS_ORIGINS` | `string[]` | `[]` | Allowed CORS origins |
+| `TRUST_PROXY` | `number \| string \| string[]` | `1` | Trusted proxy hops / IPs for client-IP detection (see below) |
 | `CACHE_MAX_AGE` | `number` | `86400` (prod) / `0` (dev) | Cache max-age in seconds |
 | `HOT_RELOAD_ENABLED` | `boolean` | `true` (dev) | Enable hot reload |
 | `WEBSOCKET_ENABLED` | `boolean` | `true` (dev) | Enable WebSocket server |
@@ -142,6 +143,32 @@ connect-src https://api.example.com;
 ```
 
 Any valid [CSP directive name](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy#directives) can be used (camelCase): `defaultSrc`, `scriptSrc`, `styleSrc`, `imgSrc`, `connectSrc`, `fontSrc`, `frameSrc`, `mediaSrc`, `workerSrc`, etc.
+
+### Trusted Proxy (`TRUST_PROXY`)
+
+StaticJS sits behind a reverse proxy (Caddy, nginx, AWS ALB, etc.) in most deployments. The `TRUST_PROXY` setting tells Express how many proxy hops to trust when reading the client IP from the `X-Forwarded-For` header. This is used by rate limiting and other IP-based logic.
+
+| Value type | Example | Meaning |
+|------------|---------|---------|
+| `number` | `1` | Trust the first *n* proxy hops (default) |
+| `string` | `"loopback"` | Trust a named range or subnet (e.g. `"loopback"`, `"10.0.0.0/8"`) |
+| `string[]` | `["10.0.0.1", "10.0.0.2"]` | Trust only the listed addresses |
+
+```typescript
+// static.config.ts — behind two reverse proxies
+export default {
+    TRUST_PROXY: 2,
+};
+```
+
+```typescript
+// static.config.ts — trust a specific subnet
+export default {
+    TRUST_PROXY: "10.0.0.0/8",
+};
+```
+
+> **Note:** Setting `trust proxy` to `true` (boolean) is intentionally rejected because it allows trivial bypass of IP-based rate limiting. Use a specific hop count or address instead.
 
 ## Revalidation API
 

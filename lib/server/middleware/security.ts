@@ -74,23 +74,23 @@ const corsOriginValidator = (
     origin: string | undefined,
     callback: (err: Error | null, allow?: boolean) => void
 ): void => {
-    const allowedOrigins = getAllowedOrigins();
-
     // Allow requests with no origin (same-origin, curl, etc.)
     if (!origin) {
         callback(null, true);
         return;
     }
 
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
+    // In development, allow all origins so reverse proxies work out of the box
+    if (isDevelopment) {
         callback(null, true);
         return;
     }
 
-    // In development, log rejected origins for debugging
-    if (isDevelopment) {
-        console.warn(`[CORS] Rejected origin: ${origin}. Allowed: ${allowedOrigins.join(', ') || 'none'}`);
+    // Check if origin is in allowed list
+    const allowedOrigins = getAllowedOrigins();
+    if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
     }
 
     callback(new Error('Not allowed by CORS'), false);
@@ -112,6 +112,9 @@ export const corsMiddleware = cors({
  * Apply security middleware to Express app
  */
 export const applySecurity = (app: Express): void => {
+    // Trust reverse proxies (Caddy, nginx, etc.) so X-Forwarded-For is used
+    // for rate limiting and client IP detection
+    app.set('trust proxy', CONFIG.TRUST_PROXY);
     app.use(securityMiddleware);
     app.use(corsMiddleware);
 };

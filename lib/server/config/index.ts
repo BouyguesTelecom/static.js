@@ -42,6 +42,7 @@ export interface ServerConfig {
     SUPPRESS_MODULE_DIRECTIVE_WARNINGS: boolean;
     CSP_DIRECTIVES: Record<string, string[]>;
     BASE_PATH: string;
+    TRUST_PROXY: number | string | string[];
 }
 
 /**
@@ -74,6 +75,10 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
         ),
     BASE_PATH: (v) => typeof v === 'string' && v.length <= 256 &&
         (v === '' || (v.startsWith('/') && /^[a-zA-Z0-9/_-]+$/.test(v))),
+    TRUST_PROXY: (v) =>
+        (typeof v === 'number' && Number.isInteger(v) && v > 0) ||
+        (typeof v === 'string' && v.length > 0) ||
+        (Array.isArray(v) && v.length > 0 && v.every((s) => typeof s === 'string' && s.length > 0)),
 };
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -100,6 +105,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
     SUPPRESS_MODULE_DIRECTIVE_WARNINGS: false,
     CSP_DIRECTIVES: {},
     BASE_PATH: '',
+    TRUST_PROXY: 1,
 };
 
 /**

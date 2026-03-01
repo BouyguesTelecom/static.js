@@ -46,13 +46,13 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
                 return null;
             }
 
-            // Get relative path for layout import
-            const layoutRelativePath = path.relative(path.dirname(id), layoutPath).replace(/\\/g, '/');
-            const layoutImportPath = layoutRelativePath.startsWith('.') ? layoutRelativePath : `./${layoutRelativePath}`;
+            // Get relative path for App import (always at src/pages/app.tsx)
+            const appPath = path.join(rootDir, "pages", "app.tsx");
+            const appRelativePath = path.relative(path.dirname(id), appPath).replace(/\\/g, '/');
+            const appImportPath = appRelativePath.startsWith('.') ? appRelativePath : `./${appRelativePath}`;
 
-            // Component found, generating hydration code with discovered layout
             const importReactDOM = `import ReactDOM from 'react-dom/client';`;
-            const importLayout = `import { Layout } from "${layoutImportPath.replace('.tsx', '')}";`;
+            const importApp = `import { App } from "${appImportPath.replace('.tsx', '')}";`;
 
             // Replace [param] with param name so the hash matches between JS and HTML
             const hashKey = pageName.replace(/\[([^\]]+)\]/g, '$1');
@@ -76,10 +76,10 @@ if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     const initialDataScript = document.getElementById(initialDatasId);
     const initialData = initialDataScript ? JSON.parse(initialDataScript.textContent || '{}') : {title: ''};
-    ReactDOM.hydrateRoot(document.getElementById(rootId), React.createElement(${componentName}, {data: initialData}));
+    ReactDOM.hydrateRoot(document.getElementById(rootId), React.createElement(App, { Component: ${componentName}, props: {data: initialData} }));
   });
 }`;
-            const transformedCode = importReactDOM + "\n" + importLayout + "\n" + code + "\n" + additionalCode;
+            const transformedCode = importReactDOM + "\n" + importApp + "\n" + code + "\n" + additionalCode;
 
             return {
                 code: transformedCode,

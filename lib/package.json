@@ -1,6 +1,6 @@
 {
   "name": "@bouygues-telecom/staticjs",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "main": "./_build/server/index.mjs",
   "exports": {
     ".": {
@@ -22,6 +22,10 @@
     "./head": {
       "types": "./_build/components/Head.d.ts",
       "default": "./_build/components/Head.mjs"
+    },
+    "./server-only": {
+      "types": "./_build/components/ServerOnly.d.ts",
+      "default": "./_build/components/ServerOnly.mjs"
     }
   },
   "typesVersions": {
@@ -37,6 +41,9 @@
       ],
       "head": [
         "./_build/components/Head.d.ts"
+      ],
+      "server-only": [
+        "./_build/components/ServerOnly.d.ts"
       ]
     }
   },

@@ -126,6 +126,7 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
         }
     }
 
+
     // Return HTML string for runtime rendering or write to file for build time
     if (returnHtml) {
         return htmlContent;

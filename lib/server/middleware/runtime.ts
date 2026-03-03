@@ -72,10 +72,13 @@ export const invalidateRuntimeCache = async (): Promise<void> => {
  * Uses renderPageRuntime which handles all page resolution and dynamic routing
  */
 export const runtimeRenderingMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    // Only handle GET requests for pages, but skip static assets and JS files
+    // Handle GET and HEAD requests for pages, but skip static assets and JS files
     // Also skip requests under BASE_PATH — those are asset requests, not pages
-    if (req.method === 'GET' && !req.path.match(/\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/)
-        && !(CONFIG.BASE_PATH && req.path.startsWith(CONFIG.BASE_PATH + '/'))) {
+    const isPageRequest = (req.method === 'GET' || req.method === 'HEAD')
+        && !req.path.match(/\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/)
+        && !(CONFIG.BASE_PATH && req.path.startsWith(CONFIG.BASE_PATH + '/'));
+
+    if (isPageRequest) {
         /**
          * Handle runtime rendering for development mode
          * Leverages renderPageRuntime's built-in page resolution and parameter handling
@@ -108,7 +111,7 @@ export const runtimeRenderingMiddleware = async (req: Request, res: Response, ne
             }
 
             if (htmlContent) {
-                res.setHeader('Content-Type', 'text/html');
+                res.setHeader('Content-Type', 'text/html; charset=utf-8');
                 res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
                 res.setHeader('Pragma', 'no-cache');
                 res.setHeader('Expires', '0');
@@ -180,7 +183,7 @@ export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevSe
                         const crypto = await import('crypto');
                         const codeHash = crypto.createHash('md5').update(result.code).digest('hex').slice(0, 8);
                         
-                        res.setHeader('Content-Type', 'application/javascript');
+                        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
                         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
                         res.setHeader('Pragma', 'no-cache');
                         res.setHeader('Expires', '0');
@@ -240,7 +243,7 @@ export const registerJavaScriptMiddleware = (app: Express, viteServer: ViteDevSe
                         const crypto = await import('crypto');
                         const codeHash = crypto.createHash('md5').update(result.code).digest('hex').slice(0, 8);
 
-                        res.setHeader('Content-Type', 'application/javascript');
+                        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
                         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
                         res.setHeader('Pragma', 'no-cache');
                         res.setHeader('Expires', '0');

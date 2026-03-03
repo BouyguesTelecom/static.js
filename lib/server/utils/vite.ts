@@ -41,6 +41,7 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
             viteServer = await createViteServer({
                 server: {
                     middlewareMode: true,
+                    allowedHosts: true,
                     hmr: {
                         port: 24679  // Use different port to avoid conflicts
                     }

@@ -17,10 +17,6 @@ const sanitizedEntries: Record<string, string> = Object.fromEntries(
 );
 
 export default defineConfig(({ mode }) => {
-    // Load environment variables from .env files
-    // const env = loadEnv(mode, CONFIG.PROJECT_ROOT, '');
-    // console.log(`[Vite] Loaded environment variables for mode: ${mode}`, env);
-
     return {
         base: CONFIG.BASE_PATH || '/',
         resolve: {

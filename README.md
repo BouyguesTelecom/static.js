@@ -193,23 +193,48 @@ This decodes the following entities inside template expressions:
 
 HTML attributes outside of `{{ }}` remain properly encoded.
 
+### Go/Caddy Template Components
+
+StaticJS provides two components for handling Go/Caddy template expressions: `<ServerOnly>` and `<ServerElement>`. Both prevent React hydration mismatches when Caddy processes template expressions.
+
+#### When to use which?
+
+| Scenario | Component | Example |
+|----------|-----------|---------|
+| Template as **part of** mixed text content | `ServerOnly` | `Hello, <ServerOnly>{'{{ $name }}'}</ServerOnly>!` |
+| Template as **entire** element content | `ServerElement` | `<ServerElement as="h1">{'{{ $title }}'}</ServerElement>` |
+| Template in **element attributes** | `ServerElement` | `serverProps={{ 'aria-label': '{{ $name }}' }}` |
+| **Conditional** structure (`{{ if }}...{{ end }}`) | `ServerElement` | Wrap entire conditional block |
+
+#### Output comparison
+
+```tsx
+// ServerOnly - adds a wrapper span
+<Title><ServerOnly>{'{{ $forename }}'}</ServerOnly></Title>
+// Output: <h1><span data-server-only>Jean</span></h1>
+
+// ServerElement - no extra wrapper, cleaner DOM
+<ServerElement as={Title}>{'{{ $forename }}'}</ServerElement>
+// Output: <h1 data-server-element>Jean</h1>
+```
+
+**Rule of thumb:** Use `ServerElement` when possible for cleaner DOM. Use `ServerOnly` when you need to mix static content with template expressions.
+
+---
+
 ### `<ServerOnly>` Component
 
-When using Go/Caddy templates within React components, you may encounter hydration mismatches. The server renders `{{ $forename }}`, Caddy processes it to "Jean", but the client-side React still expects the literal `{{ $forename }}` string and "corrects" the DOM.
-
-The `<ServerOnly>` component prevents React from hydrating its children, preserving the server-rendered (Caddy-processed) content:
+Best for **inline template expressions** mixed with static content:
 
 ```tsx
 import { ServerOnly } from '@bouygues-telecom/staticjs/server-only';
 
 export default function MyPage() {
   return (
-    <div>
-      <ServerOnly>
-        {'{{ $forename := or (.Cookie "p_Forename") "Guest" }}'}
-      </ServerOnly>
-      <p>Welcome, <ServerOnly>{'{{ $forename }}'}</ServerOnly>!</p>
-    </div>
+    <p>
+      Welcome back, <ServerOnly>{'{{ $forename }}'}</ServerOnly>!
+      You have <ServerOnly>{'{{ $count }}'}</ServerOnly> messages.
+    </p>
   );
 }
 ```
@@ -220,63 +245,95 @@ Props:
 - `className`: Optional CSS class name for the wrapper element
 
 **How it works:**
-1. Server renders: `<span id="X">{{ $forename }}</span>`
-2. Caddy processes: `<span id="X">Jean</span>`
-3. Client initial render: Reads "Jean" from DOM before React can modify it
-4. Client renders with `dangerouslySetInnerHTML={{ __html: "Jean" }}`
-5. React hydrates: DOM already matches, no mismatch!
+1. Server renders: `<span data-server-only>{{ $forename }}</span>`
+2. Caddy processes: `<span data-server-only>Jean</span>`
+3. Client captures "Jean" from DOM before React hydrates
+4. React renders with `dangerouslySetInnerHTML` - no mismatch!
 
-**Note:** Content inside `<ServerOnly>` will not have React event handlers or state. Use it only for static template expressions.
+**Note:** Content inside `<ServerOnly>` will not have React event handlers or state.
+
+---
 
 ### `<ServerElement>` Component
 
-When you have Go template expressions in **element attributes** (not just text content), use `<ServerElement>`:
+Best for **entire element content**, **attributes with templates**, or **conditional structures**:
+
+#### Example 1: Entire content is a template
 
 ```tsx
 import { ServerElement } from '@bouygues-telecom/staticjs/server-only';
+import { Title } from '@trilogy-ds/react';
 
-export default function MyPage() {
-  return (
-    <ServerElement
-      as="button"
-      serverProps={{
-        'aria-label': '{{ $forename }}',
-        'data-user': '{{ .User.ID }}',
-      }}
-      className="button"
-      type="button"
-    >
-      <ServerOnly>{'{{ $forename }}'}</ServerOnly>
-    </ServerElement>
-  );
-}
+// Cleaner than wrapping with ServerOnly - no extra span
+<ServerElement as={Title} level={1}>
+  {'{{ $pageTitle }}'}
+</ServerElement>
+// Output: <h1 data-server-element>My Page Title</h1>
 ```
 
-Props:
-- `as`: The HTML tag or custom component to render (e.g., `'button'`, `'div'`, `Button`, `Link`)
-- `serverProps`: Object containing attributes with Go template expressions (values can be `undefined`)
-- `children`: Element content (wrap template expressions in `<ServerOnly>`)
-- All other props are passed through to the element
+#### Example 2: Template in attributes
 
-**With custom components:**
+```tsx
+<ServerElement
+  as="button"
+  id="my-button"
+  serverProps={{
+    'aria-label': '{{ $forename }}',
+    'data-user-id': '{{ .User.ID }}',
+  }}
+  className="button"
+  type="button"
+>
+  {'{{ $forename }}'}
+</ServerElement>
+```
+
+#### Example 3: Conditional structures
+
+When Go template conditionals change the DOM structure, wrap the entire block:
+
+```tsx
+<ServerElement as="div" id="auth-section">
+  {'{{ if $isLoggedIn }}'}
+  <p>Welcome back!</p>
+  {'{{ else }}'}
+  <p>Please log in</p>
+  {'{{ end }}'}
+</ServerElement>
+```
+
+#### Example 4: With custom components
 
 ```tsx
 import { Button } from '@trilogy-ds/react';
 
 <ServerElement
   as={Button}
-  serverProps={{ 'aria-label': a11y?.ariaLabel }}
+  id="user-button"
+  serverProps={{ 'aria-label': '{{ $forename }}' }}
   variant="primary"
 >
-  <ServerOnly>{'{{ $forename }}'}</ServerOnly>
+  {'{{ $forename }}'}
 </ServerElement>
 ```
 
+Props:
+- `as`: HTML tag or React component (e.g., `'button'`, `'div'`, `Button`, `Title`)
+- `id`: Recommended for reliable client-side matching
+- `serverProps`: Object with attributes containing Go template expressions
+- `children`: Element content (can include template expressions directly)
+- All other props are passed through to the element
+
 **How it works:**
-1. Server renders attributes with template expressions
-2. Caddy processes them (e.g., `aria-label="Jean"`)
-3. Client reads the processed attribute values from the DOM
-4. React renders with the correct values - no mismatch!
+1. Server renders element with template expressions in attributes and content
+2. Caddy processes all templates
+3. Client captures the processed attributes and innerHTML from DOM
+4. React renders with captured values - no mismatch!
+
+**Important notes:**
+- Always provide a stable `id` prop for reliable matching
+- Content inside `ServerElement` won't have React event handlers
+- For interactive elements, use event delegation on a parent element
 
 ## Revalidation API
 

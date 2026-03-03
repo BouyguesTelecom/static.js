@@ -109,6 +109,7 @@ export default {
 | `FILE_WATCH_DEBOUNCE` | `number` | `300` | File watch debounce in ms |
 | `SUPPRESS_MODULE_DIRECTIVE_WARNINGS` | `boolean` | `false` | Suppress Vite `MODULE_LEVEL_DIRECTIVE` warnings |
 | `CSP_DIRECTIVES` | `Record<string, string[]>` | `{}` | Additional Content Security Policy sources (see below) |
+| `DECODE_TEMPLATE_EXPRESSIONS` | `boolean` | `false` | Decode HTML entities within `{{ }}` template expressions (see below) |
 
 ### Content Security Policy (CSP)
 
@@ -169,6 +170,28 @@ export default {
 ```
 
 > **Note:** Setting `trust proxy` to `true` (boolean) is intentionally rejected because it allows trivial bypass of IP-based rate limiting. Use a specific hop count or address instead.
+
+### Template Expression Decoding (`DECODE_TEMPLATE_EXPRESSIONS`)
+
+When serving HTML through a template engine like Caddy's Go templates, you may embed expressions like `{{ .SomeVar }}` or `{{ include "/path/file" }}` in your React components. However, React's SSR HTML-encodes text nodes, turning `"` into `&quot;`, which breaks these template engines.
+
+Enable `DECODE_TEMPLATE_EXPRESSIONS` to automatically decode HTML entities **only within `{{ }}`** blocks:
+
+```typescript
+// static.config.ts
+export default {
+    DECODE_TEMPLATE_EXPRESSIONS: true,
+};
+```
+
+This decodes the following entities inside template expressions:
+- `&quot;` → `"`
+- `&amp;` → `&`
+- `&lt;` → `<`
+- `&gt;` → `>`
+- `&#39;` / `&#x27;` → `'`
+
+HTML attributes outside of `{{ }}` remain properly encoded.
 
 ## Revalidation API
 

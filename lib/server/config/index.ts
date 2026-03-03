@@ -43,6 +43,7 @@ export interface ServerConfig {
     CSP_DIRECTIVES: Record<string, string[]>;
     BASE_PATH: string;
     TRUST_PROXY: number | string | string[];
+    DECODE_TEMPLATE_EXPRESSIONS: boolean;
 }
 
 /**
@@ -79,6 +80,7 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
         (typeof v === 'number' && Number.isInteger(v) && v > 0) ||
         (typeof v === 'string' && v.length > 0) ||
         (Array.isArray(v) && v.length > 0 && v.every((s) => typeof s === 'string' && s.length > 0)),
+    DECODE_TEMPLATE_EXPRESSIONS: (v) => typeof v === 'boolean',
 };
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -106,6 +108,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
     CSP_DIRECTIVES: {},
     BASE_PATH: '',
     TRUST_PROXY: 1,
+    DECODE_TEMPLATE_EXPRESSIONS: false,
 };
 
 /**

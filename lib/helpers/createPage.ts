@@ -7,6 +7,23 @@ import {CONFIG} from "../server/config/index.js";
 import {resetHeadElements, injectHeadIntoHtml} from "../components/HeadManager.js";
 
 /**
+ * Decode HTML entities within {{ }} template expressions (e.g., Go/Caddy templates).
+ * React's renderToPipeableStream HTML-encodes text nodes, turning " into &quot;
+ * which breaks template engines that expect raw syntax.
+ */
+function decodeTemplateExpressions(html: string): string {
+    return html.replace(/\{\{.+?\}\}/g, (match) => {
+        return match
+            .replace(/&quot;/g, '"')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&#39;/g, "'")
+            .replace(/&#x27;/g, "'");
+    });
+}
+
+/**
  * Render a React element to an HTML string, with Suspense support.
  * Uses renderToPipeableStream with onAllReady so that all lazy/suspended
  * components are resolved before the HTML is returned.
@@ -86,7 +103,8 @@ ${JSfileName ? `<script type="module" src="{{scriptPath}}"></script>` : ""}
     // Reset head collector before rendering, then inject collected elements after
     resetHeadElements();
 
-    const renderedHtml = await renderToStringAsync(component);
+    const rawHtml = await renderToStringAsync(component);
+    const renderedHtml = CONFIG.DECODE_TEMPLATE_EXPRESSIONS ? decodeTemplateExpressions(rawHtml) : rawHtml;
 
     let htmlContent = injectHeadIntoHtml(
         template

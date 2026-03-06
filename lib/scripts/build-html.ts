@@ -143,7 +143,7 @@ async function main() {
                                 // For dynamic routes, CSS follows same pattern as JS
                                 const CSSfileName = hasStyles && page.pageName.replace(/\[([^\]]+)\]/g, '$1');
 
-                                createPage({
+                                await createPage({
                                     data: props.data,
                                     AppComponent,
                                     PageComponent,
@@ -171,7 +171,7 @@ async function main() {
                     data = props.data;
                 }
 
-                createPage({
+                await createPage({
                     data,
                     AppComponent,
                     PageComponent,
@@ -195,7 +195,9 @@ async function main() {
         path: path as string,
     }));
 
-    pages.forEach(processPage);
+    for (const page of pages) {
+        await processPage(page);
+    }
 }
 
 main();

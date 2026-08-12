@@ -86,27 +86,27 @@ export const runtimeRenderingMiddleware = async (req: Request, res: Response, ne
         try {
             const cacheKey = req.path;
             let htmlContent: string | null = null;
-            
-            // Check if we have cached content and it's still valid
-            if (pageCache.has(cacheKey)) {
-                const cached = pageCache.get(cacheKey)!;
-                if (cached.timestamp > lastCacheInvalidation) {
-                    htmlContent = cached.content;
-                    // Serving cached content
-                }
-            }
-            
-            // If no valid cached content, render fresh
+
+            // getServerSideProps pages (e.g. live previews) must always be
+            // rendered fresh so their server-side data is never stale.
+            // Try an ssrOnly render first: it returns null for non-SSR pages.
+            htmlContent = await renderPageRuntime(req.path, undefined, true, req);
+
             if (!htmlContent) {
-                // Rendering fresh content
-                htmlContent = await renderPageRuntime(req.path);
-                
-                if (htmlContent) {
-                    // Cache the rendered content
-                    pageCache.set(cacheKey, {
-                        content: htmlContent,
-                        timestamp: Date.now()
-                    });
+                // Not a server-side page: use the in-memory cache to avoid
+                // re-running getStaticProps (and its data fetching) on every
+                // request, preserving the original static-page behaviour.
+                const cached = pageCache.get(cacheKey);
+                if (cached) {
+                    htmlContent = cached.content;
+                } else {
+                    htmlContent = await renderPageRuntime(req.path, undefined, false, req);
+                    if (htmlContent) {
+                        pageCache.set(cacheKey, {
+                            content: htmlContent,
+                            timestamp: Date.now()
+                        });
+                    }
                 }
             }
 
@@ -363,10 +363,49 @@ export const registerCSSMiddleware = (app: Express, viteServer: ViteDevServer): 
 };
 
 /**
- * Apply runtime middleware to Express app (development mode only)
+ * Server-side rendering middleware for production mode.
+ * Renders ONLY pages that export `getServerSideProps` (e.g. live previews).
+ * Any other page returns null and falls through to static file serving,
+ * preserving the fully static behaviour for normal pages.
+ * Never caches, so server-side data is always fresh.
+ */
+export const serverSidePropsMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const isPageRequest = (req.method === 'GET' || req.method === 'HEAD')
+        && !req.path.match(/\.(js|css|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/)
+        && !(CONFIG.BASE_PATH && req.path.startsWith(CONFIG.BASE_PATH + '/'));
+
+    if (!isPageRequest) {
+        return next();
+    }
+
+    try {
+        // ssrOnly=true: only getServerSideProps pages are rendered here
+        const htmlContent = await renderPageRuntime(req.path, undefined, true, req);
+
+        if (htmlContent) {
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+            res.send(htmlContent);
+            return;
+        }
+        return next();
+    } catch (error) {
+        console.error('[Runtime] Error rendering server-side page:', error);
+        return next();
+    }
+};
+
+/**
+ * Apply runtime middleware to Express app.
+ * - Development: full runtime rendering for every page.
+ * - Production: server-side rendering only for getServerSideProps pages.
  */
 export const applyRuntime = (app: Express): void => {
     if (isDevelopment) {
         app.use(runtimeRenderingMiddleware);
+    } else {
+        app.use(serverSidePropsMiddleware);
     }
 };

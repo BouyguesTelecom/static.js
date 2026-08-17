@@ -54,9 +54,16 @@ async function loadJson(filePath: string) {
 
 /**
  * Runtime page rendering function that uses the same logic as build-html.ts
- * but returns HTML string instead of writing to file
+ * but returns HTML string instead of writing to file.
+ *
+ * @param ssrOnly When true, only pages exporting `getServerSideProps` are
+ *   rendered; any other page returns null so the caller can fall back to
+ *   statically served files. Used in production to keep normal pages static
+ *   while rendering server-side pages (e.g. previews) live on each request.
+ * @param req Optional incoming request, forwarded to getServerSideProps as
+ *   `context.req` for Next.js compatibility (e.g. reading headers).
  */
-export async function renderPageRuntime(requestPath: string, params?: { [key: string]: string }): Promise<string | null> {
+export async function renderPageRuntime(requestPath: string, params?: { [key: string]: string }, ssrOnly = false, req?: unknown): Promise<string | null> {
   try {
     // Load excluded files for "no scripts" functionality
     const excludedJSFiles = await loadJson(
@@ -147,7 +154,7 @@ export async function renderPageRuntime(requestPath: string, params?: { [key: st
       return null; // Page not found
     }
 
-    return await processPageRuntime(matchedPage, excludedJSFiles, matchedParams);
+    return await processPageRuntime(matchedPage, excludedJSFiles, matchedParams, ssrOnly, req);
   } catch (error) {
     console.error("Error in renderPageRuntime:", error);
     return null;
@@ -160,8 +167,10 @@ export async function renderPageRuntime(requestPath: string, params?: { [key: st
 async function processPageRuntime(
   page: { path: string; pageName: string },
   excludedJSFiles: string[],
-  params: { [key: string]: string } = {}
-): Promise<string> {
+  params: { [key: string]: string } = {},
+  ssrOnly = false,
+  req?: unknown
+): Promise<string | null> {
   let data;
   const absolutePath = page.path;
 
@@ -215,8 +224,15 @@ async function processPageRuntime(
 
     const PageComponent = pageModule.default;
     const getStaticProps = pageModule?.getStaticProps;
+    const getServerSideProps = pageModule?.getServerSideProps;
     const getStaticPaths = pageModule?.getStaticPaths;
     const injectJS = !excludedJSFiles.includes(page.pageName);
+
+    // In ssrOnly mode (production), skip pages without getServerSideProps so the
+    // caller can serve the pre-built static HTML instead.
+    if (ssrOnly && !getServerSideProps) {
+      return null;
+    }
 
   // Replace [param] with param name so the hash matches the JS file path
   const hashKey = page.pageName.replace(/\[([^\]]+)\]/g, '$1');
@@ -238,9 +254,13 @@ async function processPageRuntime(
     );
   }
 
-  // Handle getStaticProps with or without dynamic params
+  // Handle data fetching: getServerSideProps (runtime, priority) or getStaticProps
   const isDynamicRoute = Object.keys(params).length > 0;
-  if (getStaticProps) {
+  if (getServerSideProps) {
+    // Server-side rendering: executed on every request (e.g. for live previews)
+    const { props } = await getServerSideProps({ params, req });
+    data = props?.data;
+  } else if (getStaticProps) {
     if (isDynamicRoute) {
       // Dynamic route with params
       const { props } = await getStaticProps({ params });

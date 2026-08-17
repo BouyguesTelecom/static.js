@@ -89,9 +89,17 @@ async function main() {
 
             const PageComponent = pageModule.default;
             const getStaticProps = pageModule?.getStaticProps;
+            const getServerSideProps = pageModule?.getServerSideProps;
             const getStaticPaths = pageModule?.getStaticPaths;
             const injectJS = !excludedJSFiles.includes(page.pageName);
             const hasStyles = stylesCache[page.pageName] && stylesCache[page.pageName].length > 0;
+
+            // Pages using getServerSideProps are rendered live on each request by
+            // the runtime server, so we must not pre-render them to static HTML.
+            if (getServerSideProps) {
+                console.log(`⇢ ${page.pageName} (server-side, skipped at build)`);
+                return;
+            }
 
             // Replace [param] with param name so the hash matches between JS and HTML
             const hashKey = page.pageName.replace(/\[([^\]]+)\]/g, '$1');

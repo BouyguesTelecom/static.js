@@ -27,7 +27,7 @@ jobs:
           npm config set //registry.npmjs.org/:_authToken $NPM_TOKEN
           npm whoami --registry https://registry.npmjs.org
           cd lib
-          npm version ${{ github.event.release.tag_name }} --no-git-tag-version
+          npm version ${{ github.event.release.tag_name }} --no-git-tag-version --allow-same-version
           npm publish --access public --tag beta
         env:
           NPM_TOKEN: ${{ secrets.NPM_REGISTRY_ACCESS_TOKEN }}

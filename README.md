@@ -110,6 +110,67 @@ export default {
 | `SUPPRESS_MODULE_DIRECTIVE_WARNINGS` | `boolean` | `false` | Suppress Vite `MODULE_LEVEL_DIRECTIVE` warnings |
 | `CSP_DIRECTIVES` | `Record<string, string[]>` | `{}` | Additional Content Security Policy sources (see below) |
 | `DECODE_TEMPLATE_EXPRESSIONS` | `boolean` | `false` | Decode HTML entities within `{{ }}` template expressions (see below) |
+| `PARTIAL_HYDRATION_PAGES` | `string[]` | `[]` | Exact page names whose root may arrive late or be replaced by a host application |
+
+### Hydrating replaceable partials
+
+Opt in only the pages embedded as replaceable fragments:
+
+```ts
+// static.config.ts
+export default {
+  PARTIAL_HYDRATION_PAGES: ['partials/header/[slug]'],
+};
+```
+
+Names are paths relative to `src/pages`, without a leading slash or `/index.tsx`.
+Keep dynamic segments such as `[slug]`; do not use a rendered URL such as
+`partials/header/main`, the generated JS filename, or a wildcard. Matching is exact.
+The default empty list preserves the existing bootstrap of every page.
+
+For opted-in pages, the generated module hydrates existing server markup or a root
+inserted after `DOMContentLoaded`, without needing to reevaluate the module. A
+replacement **container node** unmounts the old React root (running effect cleanup)
+and hydrates the new one. `ServerOnly` and `ServerElement` read a fresh snapshot of
+that container, not the previous fragment or another root's captured content.
+StaticJS's root/data IDs, initial-data JSON and `App`/`props.data` interface are unchanged.
+Streamed incomplete JSON is awaited; completed invalid JSON is reported once and
+that container is not hydrated.
+
+The browser-safe helper is also exported for explicit integrations:
+
+```tsx
+import { hydratePartial } from '@bouygues-telecom/staticjs/partial-hydration';
+
+const dispose = hydratePartial(rootId, initialDatasId, data =>
+  <App Component={Page} props={{ data }} />
+);
+// When the integration itself ends:
+dispose();
+```
+
+Normally the generated bootstrap handles this; do not add a second initializer.
+Use one connected container per generated root ID, and retain the generated data
+script next to its root. Pages without data use the following module script as
+their completion marker. Rewriting children inside the same live root is not a
+remount. This feature does not replay, deduplicate or dispose third-party scripts
+or independently managed widget roots.
+
+Consumers must install a published package containing this feature and rebuild
+their assets before replacing any local bootstrap workaround. Cloning this repository
+or changing the consumer configuration alone does not update an installed package.
+
+#### Validating lifecycle changes
+
+`npm test --workspace=lib` builds the library and runs its focused Node/jsdom regressions.
+For native module/parser behavior, `npm run test:browser-fixture --workspace=lib`
+serves a real-browser fixture at `http://127.0.0.1:4178` (`PORT` overrides the port).
+The `/native`, `/late`, `/stream`, `/stream-invalid`, `/stream-invalid-eof` and
+`/stream-invalid-prefix` routes exercise the built package exports and the generated
+opt-in bootstrap. `window.metrics`,
+`window.replacePartial(name, invalid)` and `window.disposePartial()` expose the
+mount/cleanup/module counts and controls for browser automation. Stop the fixture
+server when finished.
 
 ### Content Security Policy (CSP)
 

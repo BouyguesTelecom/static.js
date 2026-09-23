@@ -13,10 +13,13 @@ const getDefaultExportFunctionName = (code: string) => {
 };
 
 
-export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
+export const addHydrationCodePlugin = (
+    entries: { [key: string]: string },
+    partialHydrationPages: string[] = [],
+) => {
     return {
         name: "add-hydration-code",
-        configResolved(config: any) {
+        configResolved() {
             // Config resolved
         },
         buildStart() {
@@ -51,7 +54,10 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
             const appRelativePath = path.relative(path.dirname(id), appPath).replace(/\\/g, '/');
             const appImportPath = appRelativePath.startsWith('.') ? appRelativePath : `./${appRelativePath}`;
 
-            const importReactDOM = `import ReactDOM from 'react-dom/client';`;
+            const observeRoot = partialHydrationPages.includes(pageName);
+            const importReactDOM = observeRoot
+                ? `import { hydratePartial } from '@bouygues-telecom/staticjs/partial-hydration';`
+                : `import ReactDOM from 'react-dom/client';`;
             const importApp = `import { App } from "${appImportPath.replace('.tsx', '')}";`;
 
             // Replace [param] with param name so the hash matches between JS and HTML
@@ -68,7 +74,15 @@ export const addHydrationCodePlugin = (entries: { [key: string]: string }) => {
                 .digest("hex")
                 .slice(0, 10);
 
-            const additionalCode = `
+            const additionalCode = observeRoot ? `
+export const rootId = 'app-${rootId}';
+export const initialDatasId = 'initial-data-${initialDatasId}';
+
+if (typeof document !== 'undefined') {
+  hydratePartial(rootId, initialDatasId, (initialData) =>
+    React.createElement(App, { Component: ${componentName}, props: {data: initialData} })
+  );
+}` : `
 export const rootId = 'app-${rootId}';
 export const initialDatasId = 'initial-data-${initialDatasId}';
 

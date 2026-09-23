@@ -5,7 +5,7 @@
 
 import { createServer as createViteServer, ViteDevServer } from "vite";
 import { Express } from "express";
-import { isDevelopment, CONFIG } from "../config/index.js";
+import { isDevelopment, CONFIG } from "../config";
 import { registerJavaScriptMiddleware, registerCSSMiddleware } from "../middleware/runtime.js";
 import { loadCacheEntries } from "../../helpers/cachePages.js";
 import { addHydrationCodePlugin } from "../config/vite.plugin.js";
@@ -73,7 +73,7 @@ export const initializeViteServer = async (app: Express): Promise<ViteDevServer 
                         },
                     },
                 },
-                plugins: [addHydrationCodePlugin(entries)],
+                plugins: [addHydrationCodePlugin(entries, CONFIG.PARTIAL_HYDRATION_PAGES)],
             });
             
             // Vite server initialized

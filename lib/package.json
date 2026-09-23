@@ -26,6 +26,10 @@
     "./server-only": {
       "types": "./_build/components/ServerOnly.d.ts",
       "default": "./_build/components/ServerOnly.mjs"
+    },
+    "./partial-hydration": {
+      "types": "./_build/helpers/partialHydration.d.ts",
+      "default": "./_build/helpers/partialHydration.mjs"
     }
   },
   "typesVersions": {
@@ -44,6 +48,9 @@
       ],
       "server-only": [
         "./_build/components/ServerOnly.d.ts"
+      ],
+      "partial-hydration": [
+        "./_build/helpers/partialHydration.d.ts"
       ]
     }
   },

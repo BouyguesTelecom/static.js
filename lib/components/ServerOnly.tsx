@@ -1,4 +1,5 @@
 import React, { useState, useId, createContext, useContext, useRef } from 'react';
+import { captureServerContent, ServerContentContext, type ServerContentSnapshot } from './ServerContentContext.js';
 
 interface ServerOnlyProps {
   /**
@@ -50,40 +51,13 @@ const captureAllServerContent = (): void => {
   if (window.__capturedServerData) return;
   window.__capturedServerData = true;
 
-  // Capture ServerOnly elements
-  window.__serverOnlyById = new Map();
-  window.__serverOnlyByOrder = [];
-  const serverOnlyElements = document.querySelectorAll('[data-server-only]');
-  serverOnlyElements.forEach((el) => {
-    const content = el.innerHTML;
-    // Always add to ID map for direct ID lookup
-    if (el.id) {
-      window.__serverOnlyById!.set(el.id, content);
-    }
-    // Only add to order array if NOT inside a ServerElement (those use context)
-    if (!el.closest('[data-server-element]')) {
-      window.__serverOnlyByOrder!.push(content);
-    }
-  });
-  window.__serverOnlyIndex = 0;
-
-  // Capture ServerElement elements
-  window.__serverElementById = new Map();
-  window.__serverElementByOrder = [];
-  window.__serverElementConsumed = new Set();
-  const serverElementElements = document.querySelectorAll('[data-server-element]');
-  serverElementElements.forEach((el, index) => {
-    const attrs: Record<string, string> = {};
-    for (const attr of Array.from(el.attributes)) {
-      attrs[attr.name] = attr.value;
-    }
-    const data = { id: el.id, attrs, innerHTML: el.innerHTML };
-    window.__serverElementByOrder!.push(data);
-    if (el.id) {
-      // Store with orderIndex so we can mark it consumed when matched by ID
-      window.__serverElementById!.set(el.id, { ...data, orderIndex: index });
-    }
-  });
+  const snapshot = captureServerContent(document);
+  window.__serverOnlyById = snapshot.onlyById;
+  window.__serverOnlyByOrder = snapshot.onlyByOrder;
+  window.__serverOnlyIndex = snapshot.onlyIndex;
+  window.__serverElementById = snapshot.elementsById;
+  window.__serverElementByOrder = snapshot.elementsByOrder;
+  window.__serverElementConsumed = snapshot.consumed;
 };
 
 // Auto-capture on module load (runs before React hydration)
@@ -121,8 +95,12 @@ const parseServerOnlyContents = (innerHTML: string): string[] => {
 /**
  * Get server-only content by ID or from context.
  */
-const getServerOnlyContent = (id?: string): string => {
+const getServerOnlyContent = (id?: string, snapshot?: ServerContentSnapshot | null): string => {
   if (typeof window === 'undefined') return '';
+  if (snapshot) {
+    if (id && snapshot.onlyById.has(id)) return snapshot.onlyById.get(id) || '';
+    return snapshot.onlyByOrder[snapshot.onlyIndex++] || '';
+  }
   captureAllServerContent();
 
   // Try by ID first
@@ -165,6 +143,7 @@ export const ServerOnly: React.FC<ServerOnlyProps> = ({ children, as: Tag = 'spa
 
   // Check for parent ServerElement context
   const parentContext = useContext(ServerElementContext);
+  const rootSnapshot = useContext(ServerContentContext);
 
   // Capture content once during initial render
   const [content] = useState(() => {
@@ -173,7 +152,10 @@ export const ServerOnly: React.FC<ServerOnlyProps> = ({ children, as: Tag = 'spa
     }
 
     // 1. Try by provided ID
-    if (providedId && window.__serverOnlyById?.has(providedId)) {
+    if (rootSnapshot?.onlyById.has(id)) {
+      return rootSnapshot.onlyById.get(id) || '';
+    }
+    if (!rootSnapshot && providedId && window.__serverOnlyById?.has(providedId)) {
       return window.__serverOnlyById.get(providedId) || '';
     }
 
@@ -183,7 +165,7 @@ export const ServerOnly: React.FC<ServerOnlyProps> = ({ children, as: Tag = 'spa
     }
 
     // 3. Fall back to global positional matching
-    return getServerOnlyContent();
+    return getServerOnlyContent(rootSnapshot ? id : undefined, rootSnapshot);
   });
 
   return (
@@ -236,8 +218,19 @@ const toKebabCase = (str: string): string => {
 /**
  * Get server-element data by ID or by position.
  */
-const getServerElementData = (id?: string): { attrs: Record<string, string>; innerHTML: string } | null => {
+const getServerElementData = (id?: string, snapshot?: ServerContentSnapshot | null): { attrs: Record<string, string>; innerHTML: string } | null => {
   if (typeof window === 'undefined') return null;
+  if (snapshot) {
+    if (id && snapshot.elementsById.has(id)) {
+      const data = snapshot.elementsById.get(id)!;
+      snapshot.consumed.add(data.orderIndex);
+      return data;
+    }
+    const index = snapshot.elementsByOrder.findIndex((_, i) => !snapshot.consumed.has(i));
+    if (index === -1) return null;
+    snapshot.consumed.add(index);
+    return snapshot.elementsByOrder[index];
+  }
   captureAllServerContent();
 
   // Try by ID first
@@ -313,6 +306,7 @@ export const ServerElement: React.FC<ServerElementProps> = ({
   const reactId = useId();
   const providedId = restProps.id;
   const id = providedId || `se${reactId.replace(/:/g, '')}`;
+  const rootSnapshot = useContext(ServerContentContext);
 
   // Filter out undefined values from serverProps
   const definedServerProps = filterDefinedProps(serverProps);
@@ -326,7 +320,7 @@ export const ServerElement: React.FC<ServerElementProps> = ({
       return { attrs: definedServerProps, innerHTML: '', serverOnlyContents: [] as string[] };
     }
 
-    const data = getServerElementData(providedId);
+    const data = getServerElementData(rootSnapshot ? id : providedId, rootSnapshot);
     if (!data) {
       return { attrs: definedServerProps, innerHTML: '', serverOnlyContents: [] as string[] };
     }

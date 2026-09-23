@@ -44,6 +44,7 @@ export interface ServerConfig {
     BASE_PATH: string;
     TRUST_PROXY: number | string | string[];
     DECODE_TEMPLATE_EXPRESSIONS: boolean;
+    PARTIAL_HYDRATION_PAGES: string[];
 }
 
 /**
@@ -81,6 +82,9 @@ const CONFIG_VALIDATORS: Record<keyof ServerConfig, (value: unknown) => boolean>
         (typeof v === 'string' && v.length > 0) ||
         (Array.isArray(v) && v.length > 0 && v.every((s) => typeof s === 'string' && s.length > 0)),
     DECODE_TEMPLATE_EXPRESSIONS: (v) => typeof v === 'boolean',
+    PARTIAL_HYDRATION_PAGES: (v) => Array.isArray(v) && v.every(page =>
+        typeof page === 'string' && page.length > 0 && page.length < 1024
+    ),
 };
 
 export const DEFAULT_CONFIG: ServerConfig = {
@@ -109,6 +113,7 @@ export const DEFAULT_CONFIG: ServerConfig = {
     BASE_PATH: '',
     TRUST_PROXY: 1,
     DECODE_TEMPLATE_EXPRESSIONS: false,
+    PARTIAL_HYDRATION_PAGES: [],
 };
 
 /**

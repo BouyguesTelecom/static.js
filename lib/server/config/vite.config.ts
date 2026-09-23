@@ -1,5 +1,5 @@
 import path from "path";
-import {defineConfig, loadEnv} from "vite";
+import {defineConfig} from "vite";
 import {addHydrationCodePlugin} from "./vite.plugin.js";
 import {loadCacheEntries} from "../../helpers/cachePages.js";
 import {CONFIG} from "./index.js";
@@ -16,7 +16,7 @@ const sanitizedEntries: Record<string, string> = Object.fromEntries(
     ])
 );
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
     return {
         base: CONFIG.BASE_PATH || '/',
         resolve: {
@@ -50,6 +50,6 @@ export default defineConfig(({ mode }) => {
                 },
             },
         },
-        plugins: [addHydrationCodePlugin(entries)],
+        plugins: [addHydrationCodePlugin(entries, CONFIG.PARTIAL_HYDRATION_PAGES)],
     };
 });

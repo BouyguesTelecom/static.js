@@ -26,3 +26,9 @@ node_modules
 cache
 
 .claude
+
+# Test reports
+test-results
+playwright-report
+.copilot
+

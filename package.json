@@ -16,17 +16,22 @@
     "build:react": "npm run build --workspace=templates/react",
     "start:react": "npm run start --workspace=templates/react",
     "dev": "npm run build --workspace=lib && npm run dev --workspace=templates/react",
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run build:lib && STATICJS_SKIP_LIB_BUILD=1 npm run test:unit && STATICJS_SKIP_LIB_BUILD=1 npm run test:integration && STATICJS_SKIP_LIB_BUILD=1 npm run test:e2e",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "test:e2e": "playwright test",
     "clean": "npm run clean --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "setup-dev": "node ./setup-dev.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@types/node": "^20",
     "tsx": "^4.19.4",
     "typescript": "^5",
     "typescript-eslint": "^8.30.1",
-    "vite": "^7"
+    "vite": "^7",
+    "vitest": "^3.2.7"
   },
   "keywords": [
     "static-site-generator",

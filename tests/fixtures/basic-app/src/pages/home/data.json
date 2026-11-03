@@ -1,0 +1,6 @@
+{
+  "layout": {
+    "title": "Home title from data.json",
+    "description": "Home description from data.json"
+  }
+}

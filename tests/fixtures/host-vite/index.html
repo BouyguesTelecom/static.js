@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>Vite host - build-time fragments</title></head>
+<body>
+<p data-testid="host-status">loading</p>
+<section id="slot-app1">
+<!-- staticjs:include /app1/partials/counter.html -->
+</section>
+<section id="slot-app2">
+<!-- staticjs:include /app2/partials/greeting.html -->
+</section>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
